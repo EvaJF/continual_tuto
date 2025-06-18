@@ -9,36 +9,53 @@ __Contents__
 
 __Set-up__
 
-To get started with the tutorial, clone this repository.
+To get started with the tutorial, clone this repository and 
+create a virtual environment with either [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) or [pip](https://python-guide-pt-br.readthedocs.io/fr/latest/dev/virtualenvs.html).
+The name of the environment is "cil".
 
 ```bash
 git clone git@github.com:EvaJF/continual_tuto.git
 cd continual_tuto
 ````
-
-Create a virtual environment with either [pip](https://python-guide-pt-br.readthedocs.io/fr/latest/dev/virtualenvs.html) or with [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html).
-
+Conda version:
 ```bash
 conda create --name cil --file requirements.txt
 conda activate cil
 ```
-or 
+Pip version:
 ```bash
 python -m venv cil
 source cil/bin/activate 
 pip install -r requirements.txt
 ```
 
-We will use popular image datasets such as MNIST, Oxford-Flowers-102 and Food-101.
-In the `data` folder, we will store images and their vector representations computed with an encoder, e.g. when choosing Food-101 dataset :
-- the data will be downladed under `data/food-101`, 
-- the image representations computed using a ResNet18 network pretrained on the ImageNet-1k dataset will be stored under `data/features/food-101/resnet18_in1k/`.
-Data/features will be downloaded in the next steps. 
+TODO : updated version of requirements files
 
-__Basic prediction pipeline__
+__Repository structure__
+
+The folders : 
+* `ckp` : where we will store model checkpoints
+* `data` : where we will store images and their vector representations computed with an encoder, e.g. when using the Food-101 dataset :
+    - the data will be downladed under `data/food-101`, 
+    - the image representations computed using a ResNet18 network pretrained on the ImageNet-1k dataset will be stored under `data/features/food-101/resnet18_in1k/`.
+NB : Data will be downloaded in the next steps. 
+* `logs` : where we will store the results of our experiments there
+* `methods` : incremental learning algorithms
+* `utils_tuto` : utility functions for the tutorial e.g. dataloaders and performance metrics.
+
+The training scripts : 
+* to do add list and description
+
+__Basic training and inference pipeline of an image classification model__
 
 <img src="media/pred_pipeline.png" alt="prediction pipeline">
 
+See script `joint_expe.py` for an example : training a classifier on the MNIST dataset. This will be our starting point for the next experiments. 
+
+TODO : detailed comment on joint expe
+* dataset an data loader
+* model, optimizer, scheduler
+* training loop
 
 ## 2. The incremental learning framework
 
@@ -52,7 +69,7 @@ __Class-incremental learning__
 
 __Measuring performance__
 
-TODO implement utility functions : 
+TODO explain : 
 - acc matrix 
 - avg incr acc 
 - avg forgetting
@@ -65,16 +82,17 @@ __Baselines__
 python joint_expe.py
 ```
 
-TODO example script on MNIST
-
 *Vanilla fine-tuning* is usually the low baseline. 
 
-TODO example script on MNIST
+TODO comment example script on MNIST
+* new data loader
+* updating the fc layer
+* evaluation
 
 __Challenges__
 
 * Catastrophic forgetting and the stability-plasticity balance
-
+...
 
 * Representation overlap
 <img src="media/representation_overlap.png" alt="representation overlap">
@@ -83,7 +101,17 @@ __Challenges__
 <img src="media/representation_drift.png" alt="representation drift">
 
 
-## 3. Incremental learning with a fixed encoder 
+## 3. Fine-tuning-based incremental learning methods
+
+__Replay__
+
+__Knowledge distillation__
+
+__Balanced cross-entropy loss__
+
+__Further reading__
+
+## 4. Incremental learning with a fixed encoder 
 
 aka classifier-incremental learning 
 
@@ -126,8 +154,4 @@ python fecam1_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_
 python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
 ```
 
-## 4. Fine-tuning-based incremental learning methods
-
-__methods to choose__
-
-TODO expe on MNIST
+__Further reading__
