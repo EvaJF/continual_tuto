@@ -70,6 +70,7 @@ dependencies:
   - readline=8.2=h1a28f6b_0
   - scikit-learn=1.6.1=py312h313beb8_0
   - scipy=1.15.3=py312hb81b3df_0
+  - seaborn=0.13.2=py312hca03da5_3
   - setuptools=78.1.1=py312hca03da5_0
   - six=1.17.0=py312hca03da5_0
   - sleef=3.5.1=h80987f9_2
