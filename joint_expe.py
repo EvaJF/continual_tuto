@@ -3,7 +3,7 @@
 #
 # Joint training using MNIST dataset
 #
-# based on  https://github.com/pytorch/examples/blob/master/mnist/main.py
+# based on  https://github.com/hleborgne/TDDL/blob/master/2_usual_DNN/mnist_pytorch_exercise.ipynb
 
 import os
 import numpy as np
