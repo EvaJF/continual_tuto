@@ -1,6 +1,9 @@
 # Continual Learning Tutorial
 
 Repository for PFIA 2025 - Tutorial on Continual Learning for Image Classification
+---
+
+The aim of this tutorial is to introduce the stakes, challenges and main algorithmic approaches of continual learning through an overview and practical exercises. It will focus on recent algorithms for learning an image classification model incrementally.
 
 __Contents__
 
@@ -22,12 +25,14 @@ The name of the environment is "cil".
 ```bash
 git clone git@github.com:EvaJF/continual_tuto.git
 cd continual_tuto
-````
+```
+
 Conda version:
 ```bash
-conda create --name cil --file requirements.txt
+conda env create -f cil.yml
 conda activate cil
 ```
+
 Pip version:
 ```bash
 python -m venv cil
@@ -35,9 +40,13 @@ source cil/bin/activate
 pip install -r requirements.txt
 ```
 
-TODO : updated version of requirements files
+TODO : test creating new env
 
 __Repository structure__
+
+The training scripts : 
+* Fine-tuning-based incremental learning methods are illustrated using the MNIST dataset. See `joint_expe.py` for classic joint learning, `vanilla_expe.py` for vanilla fine-tuning across incremental learning steps, `replay_expe.py` for replay strategies, `distillation_expe.py` for knowledge distillation.
+* Incremental learning methods that are based on a fixed encoder are illustrated on larger scale datasets (Flowers-102, Food-101). See `ncm_expe.py` for the Nearest Class Mean classifier (Rebuffi2017), `dslda_expe.py` for Deep Streaming LDA (Hayes), `fecam1_expe.py` for FeCAM with a common covariance matrix and `fecamN_expe.py`for FeCAM with one covariance matrix per class.
 
 The folders : 
 * `ckp` : where we will store model checkpoints
@@ -49,8 +58,6 @@ NB : Data will be downloaded in the next steps.
 * `methods` : incremental learning algorithms
 * `utils_tuto` : utility functions for the tutorial e.g. dataloaders and performance metrics.
 
-The training scripts : 
-* to do add list and description
 
 __Basic training and inference pipeline of an image classification model__
 
@@ -217,6 +224,23 @@ Useful repo
 
 Surveys
 
+
+____
+
+Before closing this tutorial, you may wish to uninstall the virtual environment you created.
+
+* Conda 
+
+```bash
+conda deactivate
+conda env remove --name cil
+```
+* Pip
+
+```bash
+deactivate
+rm -r cil/
+```
 ____
 
 Cite this repo 
