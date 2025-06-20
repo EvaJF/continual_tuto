@@ -63,21 +63,23 @@ __Basic training and inference pipeline of an image classification model__
 
 <img src="media/pred_pipeline.png" alt="prediction pipeline">
 
-<u>Example:</u> In `joint_expe.py` we train a small convolutional neural network on the MNIST dataset. This will be our starting point for the next experiments.
+
+> In `joint_expe.py` we train a small convolutional neural network on the MNIST dataset. This will be our starting point for the next experiments.
+Joint training represents the ideal scenario in terms of final performance but assumes full availability of all classes from the beginning. 
+
+* Execute the script and get acquainted with the code. 
 
 ```bash
 python joint_expe.py
 ```
 
-> `joint_expe.py` represents the ideal scenario in terms of final performance but assumes full availability of all classes from the beginning. 
-
-See [here](comments/comments_joint.md) for more detailed explanations on joint training. 
+See [here](comments/comments_joint.md) for more detailed explanations on this part of the tutorial. 
 
 ___
 
 ## 2. The incremental learning framework <a name="part2"></a>
 
-The term *continual learning* was notably used by Ring in 1997 [Ring, 1997], with the followng definition:
+The term *continual learning* was notably used by Ring in 1997 [Ring, 1997], with the following definition:
 > « Continual learning is the constant development of increasingly complex behaviors, the
 process of building more complicated skills on top of those already developed. »
 
