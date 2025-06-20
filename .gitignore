@@ -1,5 +1,7 @@
 # Data folder
 data/
+ckp/
+logs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
