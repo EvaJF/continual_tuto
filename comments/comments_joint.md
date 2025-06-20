@@ -1,10 +1,9 @@
-# Commented code - step by step
+# Joint training - step by step
 
 The script `joint_expe.py` provides a minimal pipeline for supervised image classification using the MNIST dataset and a custom convolutional neural network (CNN) built with PyTorch. 
 It includes data preparation, model definition, training, validation, evaluation, and checkpointing. 
 In the following, we comment the code in more details. 
 
-## 1. Joint training
 ---
 
 **Device Configuration**
