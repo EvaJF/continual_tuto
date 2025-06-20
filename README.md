@@ -170,7 +170,7 @@ def compute_forgetting(acc_mat, weights=None):
     return f
 ```
 
-* What could be improved in this vanilla fine-tuning experiment ? (Hint : learning rate, parameter selection).
+* What could be improved in this vanilla fine-tuning experiment ? (Hint : validation set, learning rate, parameter selection).
 
 NB : In CIL experiments, joint training is usually the high baseline, and 
 vanilla fine-tuning is usually the low baseline. 
