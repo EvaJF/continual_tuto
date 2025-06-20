@@ -21,6 +21,8 @@ With `model.to(device)` and `tensor.to(device)`, we move objects to the chosen d
 
 **Preprocessing**
 
+The dataset $D$ is usually divided into three subsets denoted $D_{train}, D_{val}, D_{test}$, used for training, validation, and testing, respectively.
+
 Here we perform a minimalistic transform by converting the input images to tensors and centering inputs (zero mean, unit variance). Normalization stabilizes and speeds up training. 
 
 ```python

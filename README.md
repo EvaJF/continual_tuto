@@ -22,7 +22,6 @@ __Set-up__
 To get started with the tutorial, clone this repository and 
 create a virtual environment with either [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) or [pip](https://python-guide-pt-br.readthedocs.io/fr/latest/dev/virtualenvs.html).
 The name of the environment is "cil". 
-In this tutorial, we use standard libraries for numerical computations and visualization (`numpy`, `matplotlib`) and deep learning (`torch`, `timm`).
 
 ```bash
 git clone git@github.com:EvaJF/continual_tuto.git
@@ -41,48 +40,54 @@ python -m venv cil
 source cil/bin/activate 
 pip install -r requirements.txt
 ```
+We will use standard libraries for numerical computations (`numpy`), visualization (`matplotlib`) and deep learning (`torch`).
 
 __Repository structure__
 
-The training scripts : 
+This repository contains scripts for training an image classification model following different methods. 
 * Fine-tuning-based incremental learning methods are illustrated using the MNIST dataset. See `joint_expe.py` for classic joint learning, `vanilla_expe.py` for vanilla fine-tuning across incremental learning steps, `replay_expe.py` for replay strategies, `distillation_expe.py` for knowledge distillation.
-* Incremental learning methods that are based on a fixed encoder are illustrated on larger scale datasets (Flowers-102, Food-101). See `ncm_expe.py` for the Nearest Class Mean classifier (Rebuffi2017), `dslda_expe.py` for Deep Streaming LDA (Hayes), `fecam1_expe.py` for FeCAM with a common covariance matrix and `fecamN_expe.py`for FeCAM with one covariance matrix per class.
+* Incremental learning methods that are based on a fixed encoder are illustrated on larger scale datasets (Flowers-102, Food-101). See `ncm_expe.py` for the Nearest Class Mean classifier (Rebuffi et al., 2017), `dslda_expe.py` for Deep Streaming LDA (Hayes et al., 2020), `fecam1_expe.py` for FeCAM with a common covariance matrix and `fecamN_expe.py`for FeCAM with one covariance matrix per class (Goswani et al., 2024).
+Utility functions, e.g. dataloaders and performance metrics, can be found under `utils_tuto`. 
 
-The folders : 
-* `ckp` : where we will store model checkpoints
-* `data` : where we will store images and their vector representations computed with an encoder, e.g. when using the Food-101 dataset :
+Additionally, running the scripts will create the following folders. 
+* `ckp` : to store model checkpoints
+* `data` : to store images and their vector representations computed with an encoder, e.g. when using the Food-101 dataset :
     - the data will be downladed under `data/food-101`, 
     - the image representations computed using a ResNet18 network pretrained on the ImageNet-1k dataset will be stored under `data/features/food-101/resnet18_in1k/`.
+* `logs` : to store experimental results
+
 NB : Data will be downloaded in the next steps. 
-* `logs` : where we will store the results of our experiments there
-* `methods` : incremental learning algorithms
-* `utils_tuto` : utility functions for the tutorial e.g. dataloaders and performance metrics.
 
 
 __Basic training and inference pipeline of an image classification model__
 
+Given $\mathcal{X} \subset \mathbb{R}^d$ an input domain and $\mathcal{Y} \subset \mathbb{N}^{n}$ a set of labels, let us consider a dataset $D$ defined as a set of pairs of the form $(x,y) \in \mathcal{X} \times \mathcal{Y}$, where $x$ is a computerized representation of an image and $y$ is a label associated with the image. Here, a label $y$ represents the class of an image.
+In the following, we consider the case of a multi-class classification task with $n$ classes where $n \geq 2$.
+
 <img src="media/pred_pipeline.png" alt="prediction pipeline">
 
+A supervised classification problem consists of building a mapping function $\mathcal{M}_\theta$ that tries to relate $x$ to $y$ as closely as possible, i.e. for each $(x,y)\in D$, to have $\mathcal{M}_\theta(x)~\approx y$. This mapping function is referred to as a model. In this tutorial, the models we consider are neural networks. 
+
+An image classification model can typically be decomposed into an encoder $\phi : \mathcal{X} \rightarrow \mathbb{R}^H$, also called *feature extractor*, and a classifier $f : \mathbb{R}^H \rightarrow \mathbb{R}^{n}$, i.e. $\mathcal{M}_\theta = f \circ \phi$.
+The encoder produces a compact vector representation of the input image, called an *embedding* (or a *feature vector*, or a *latent representation*) and the classifier assigns a class to this representation. 
 
 > In `joint_expe.py` we train a small convolutional neural network on the MNIST dataset. This will be our starting point for the next experiments.
 Joint training represents the ideal scenario in terms of final performance but assumes full availability of all classes from the beginning. 
 
-* Execute the script and get acquainted with the code. 
+* Execute the script. Identify the hyperparameters of the experiment. 
 
 ```bash
 python joint_expe.py
 ```
 
-See [here](comments/comments_joint.md) for more detailed explanations on this part of the tutorial. 
+See [here](comments/comments_joint.md) for more detailed explanations on this first experiment. 
 
 ___
 
 ## 2. The incremental learning framework <a name="part2"></a>
 
-The term *continual learning* was notably used by Ring in 1997 [Ring, 1997], with the following definition:
-> « Continual learning is the constant development of increasingly complex behaviors, the
+The term *continual learning* was notably used by Ring in 1997 [Ring, 1997], with the following definition: « Continual learning is the constant development of increasingly complex behaviors, the
 process of building more complicated skills on top of those already developed. »
-
 The term *lifelong learning* is also used in the literature [Thrun, 1995]
 
 In recent years, reasearch has focused on a particular form of continual learning, namely *incremental learning*. 
@@ -90,9 +95,9 @@ In recent years, reasearch has focused on a particular form of continual learnin
 __Types of incremental learning__
 
 The literature often distinguishes three types of incremental learning.
-* Task-Incremental Learning (TIL)
-* Domain-Incremental Learning (DIL)
-* Class-Incremental Learning (CIL)
+* Task-Incremental Learning (TIL): progressively learn a series of semantically distinct tasks. In practice, each data sample has a task identifier. Example : learning to recognize hand-written digits, then learning to classify doodles.
+* Domain-Incremental Learning (DIL): the structure of the problem is the same across the learning steps, but the input distribution changes. Example : learning to recognize digits written by children, when learning to recognize digits written by adults. 
+* Class-Incremental Learning (CIL): a growing number of classes must be recognized, without task identity. Example: learning to recognize hand-written digits from 0 to 4, then learning to recognize hand-written digits from 5 to 9.
 
 <img src="media/IL_types.png" alt="Types of incremental learning">
 
@@ -102,8 +107,11 @@ __Class-incremental learning__
 
 <img src="media/cil_principle.png" alt="CIL principle">
 
-TODO add formalism for the framework
-
+The objective of CIL is to train a model that integrates all classes of a dataset whose examples arrive in a stream.  
+We consider a sequential learning process composed of $T$ non-overlapping steps $s_1, s_2,\dots,s_T$. 
+For $t \in [1, T]$, a step $s_t$ consists of learning from the examples contained in a dataset $D_t$. 
+Each data set $D_t$ corresponds to a set $P_t$ of classes so that each learning example in $D_t$ uses a class belonging to $P_{t}$. 
+Each class is only present in a single dataset.
 
 __Catastrophic forgetting and the stability-plasticity balance__
 
@@ -111,24 +119,30 @@ A major issue faced by continual learning models is their tendency to
 forget previously acquired information when confronted with new information. The phenomenon is called *catastrophic forgetting* or *catastrophic interference*, as it is caused by the "interference" of new information
 with previous information [French, 1999; McCloskey and Cohen, 1989]. 
 
-Some works in continual learning take inspiration from neuroscience. In particular, the terms of *stability* and *plasticity*, originally introduced to describe biological neural networks [Mermillod et al., 2013;
-Abraham and Robins, 2005], are also found in the continual learning literature. Stability refers to the ability to retain past information, and plasticity to the ability to adapt an existing representation to take new information into account. Stability and plasticity are often presented as two complementary but competing aspects of learning.
+Some works in continual learning take inspiration from neuroscience. In particular, the terms of *stability* and *plasticity*, originally introduced to describe biological neural networks [Mermillod et al., 2013], are also found in the continual learning literature. 
+* Stability refers to the ability to retain past information.
+* Plasticity to the ability to adapt an existing representation to take new information into account. 
+
+Stability and plasticity are often presented as two complementary but competing aspects of learning.
+
+__Vanilla fine-tuning__
 
 > In `vanilla_expe.py`, we implement the basic framework for learning MNIST classification incrementally (e.g. learning the 10 classes in five steps of 2 classes each instead of learning all 10 classes together). 
-
-* Run the script and compare the final performance with the performance obtained previously with the joint training strategy. What happened ?
 
 ```bash 
 python vanilla_expe.py
 ```
 
-If the parameters of a neural network are naively adjusted to the latest training data, a
-procedure we refer to as vanilla fine-tuning here, the model will overfit to the latest training data and information that was useful for classifying the previous data may be forgotten. This corresponds to a high plasticity and low stability of the model, resulting in an abrupt degradation of the model's performance on past data.
+* Run the script and compare the final test accuracy with the one obtained previously with the joint training strategy. 
+* In the performance report, look at the matrix which coefficient $(i, j)$ displays $Acc_i^j$, the accuracy of model $\mathcal{M}_i$ on the test samples from $D_j$. What happened ?
+
+__If the parameters of a neural network are naively adjusted to the latest training data, a
+procedure we refer to as *vanilla fine-tuning*, the model will overfit to the latest training data and information that was useful for classifying the previous data may be forgotten.__ This corresponds to a high plasticity and low stability of the model, resulting in an abrupt degradation of the model's performance on past data.
 
 
 * Compare the training loop of `vanilla_expe.py`with the training loop of `joint_expe.py`. In particular, take a look at the following aspects.
 
-<u>The incremental scenario set-up: </u> Classes are introduced progressively (e.g. 2 at a time).
+<u>Incremental scenario set-up: </u> Classes are introduced progressively (e.g. 2 at a time here).
 ```python
 nb_init_cl = 2
 nb_incr_cl = 2
@@ -136,55 +150,60 @@ nb_tot_cl = 10
 nb_steps = (nb_tot_cl - nb_init_cl) // nb_incr_cl
 ```
 
-<u>The classes accessible at training time versus at test time are different: </u> 
+<u>The classes accessible at training time and the classes accessible at test time are different: </u> 
 ```python
-    train_cl = range(nb_init_cl + nb_incr_cl * (step - 1), nb_curr_cl)
-    test_cl = range(nb_curr_cl)
+train_cl = range(nb_init_cl + nb_incr_cl * (step - 1), nb_curr_cl)
+test_cl = range(nb_curr_cl)
 ```
 
-The expanding classification layer: In joint training, the classifier has a fixed output dimension (10 classes).
+<u>Classification layer: </u> In joint training, the classifier has a fixed output dimension (10 classes).
 In fine-tuning, the output layer is expanded at each step via `update_fc`, preserving weights of existing classes and appending  weights for the new classes.
-At each step, the model is tested on all classes seen so far, simulating a realistic deployment scenario of the model in a changing environment.
+At each step, the model is tested on all classes seen so far.
 
 <u>Performance evaluation:</u> We can use the final accuracy to compare with joint training. 
-We can also compare different incremental learning algorithms based on two complementary indicators, namely :
+We can also compare different incremental learning algorithms based on two complementary indicators, namely average incremental accuracy and average forgetting.
 
-Average incremental accuracy : 
+The average incremental accuracy of a model trained over a $T$-step incremental process is defined as the average test accuracy of the model over the $T$ steps of the incremental process (rebuffi2017_icarl). 
+We denote it by $A$ and compute it as 
+$ A = \frac{1}{T} \sum_{i=1}^T Acc_i^{1:i}$, 
+where $Acc_i^{1:i}$ is the accuracy of the model $\mathcal{M}_i$ on test samples from $\bigcup_{j=1}^i D_j$, after performing the learning step $s_i$.
+
+Implementation: in `vanilla_expe.py`, the variable `test_acc_list` contains the values $Acc_1^1, Acc_2^{1:2}, ... Acc_T^{1:T}$. We obtain the average incremental accuracy by computing the mean of this list. 
+
 ```python
-print("\nMACRO Avg incr acc: {:.2f}".format(np.mean(test_acc_list)))
-print(
-    "MICRO Avg incr acc: {:.2f}".format(
-        np.average(test_acc_list, weights=nb_test_samples)
-    )
-)
+print("\nAvg incr acc: {:.2f}".format(np.mean(test_acc_list)))
 ```
-Average forgetting : 
+
+The average forgetting of a model trained over a $T$-step process is the average of the accuracy gaps $f_i, i \in \llbracket 1,T-1 \rrbracket$, computed for each data subset $D_i$, as the difference between the best accuracy achieved for $D_i$ at any step $s_k$, with $k \leq i$, by a model $\mathcal{M}_k$, and the accuracy of the final model $\mathcal{M}_T$ on $D_i$. 
+We denote it by $F$ and compute it as: 
+    $ F = \frac{1}{T-1} \sum_{i=1}^{T-1} f_i $,
+where $f_i$ is the individual forgetting, computed as $f_i = \max_{i \leq k \leq T} Acc_k^i - Acc_T^i$
+
+Implementation : In `vanilla_expe.py`, the coefficient $i, j$ of the `acc_mat` matrix contains the accuracy $Acc_i^j$ of model $\mathcal{M}_i$ on the test samples from $D_j$. 
+
 ```python
-def compute_forgetting(acc_mat, weights=None):
-    """
-    forgetting = final acc - max acc reached at any step for a given dataset
-    """
-    max_acc = np.max(acc_mat, axis=0)
-    last_acc = acc_mat[-1]
-    f = np.average(max_acc-last_acc, weights=weights)
-    return f
+max_acc = np.max(acc_mat, axis=0)
+last_acc = acc_mat[-1]
+f = np.average(max_acc-last_acc)
 ```
 
 * What could be improved in this vanilla fine-tuning experiment ? (Hint : validation set, learning rate, parameter selection).
 
 NB : In CIL experiments, joint training is usually the high baseline, and 
-vanilla fine-tuning is usually the low baseline. 
+vanilla fine-tuning the low baseline. 
 
 
 __Further remarks on the challenges of CIL__
 
-* Representation overlap
-<img src="media/representation_overlap.png" alt="representation overlap">
+Another illustration of the challenges of CIL
 
-* Representation drift
+* Representation drift when updating the encoder 
 <img src="media/representation_drift.png" alt="representation drift">
 
-* Plasticity loss
+* Representation overlap when being conservative on the encoder 
+
+<img src="media/representation_overlap.png" alt="representation overlap">
+
 
 ___
 
@@ -228,6 +247,8 @@ __Knowledge distillation__
 
 Knowledge distillation on logits (LwF style, following Hinton et al.)
 
+using [KL div](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.kl_div.html) ?? TODO check LwF paper
+
 ```bash
 python distillation_expe.py
 ```
@@ -239,7 +260,7 @@ Going further :
 
 __Balanced cross-entropy loss__
 
-TODO : KD on features
+TODO : KD on features, [CosineEmbeddingLoss](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
 
 ```bash
 python bsil_expe.py
@@ -303,14 +324,13 @@ RanPAC, FeTrIL...
 
 ## 5. Further reading / useful links <a name="part5"></a>
 
+Varying the scenario 
+
 Prompt-based methods
-
-Other methods
-
-Useful repo
 
 Surveys
 
+Useful repos
 
 ____
 
@@ -331,6 +351,9 @@ rm -r cil/
 ____
 
 Cite this repo 
+
+Illustrations are all taken from  TODO CITE manuscript. 
+
 
 ```
 @software{Feillet_Tutorial_on_Continual,
