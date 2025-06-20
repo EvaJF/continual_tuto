@@ -13,6 +13,7 @@ __Contents__
 4. [Incremental learning methods with a fixed encoder](#part4)
 5. [Further reading](#part5)
 
+___
 
 ## 1. Preliminaries <a name="part1"></a>
 
@@ -72,6 +73,8 @@ python joint_expe.py
 
 See [here](comments/comments_joint.md) for more detailed explanations on joint training. 
 
+___
+
 ## 2. The incremental learning framework <a name="part2"></a>
 
 The term *continual learning* was notably used by Ring in 1997 [Ring, 1997], with the followng definition:
@@ -97,10 +100,10 @@ __Class-incremental learning__
 
 <img src="media/cil_principle.png" alt="CIL principle">
 
+TODO add formalism for the framework
 
-__Challenges__
 
-* Catastrophic forgetting and the stability-plasticity balance
+__Catastrophic forgetting and the stability-plasticity balance__
 
 A major issue faced by continual learning models is their tendency to
 forget previously acquired information when confronted with new information. The phenomenon is called *catastrophic forgetting* or *catastrophic interference*, as it is caused by the "interference" of new information
@@ -173,14 +176,15 @@ vanilla fine-tuning is usually the low baseline.
 
 __Further remarks on the challenges of CIL__
 
-* 
-
 * Representation overlap
 <img src="media/representation_overlap.png" alt="representation overlap">
 
 * Representation drift
 <img src="media/representation_drift.png" alt="representation drift">
 
+* Plasticity loss
+
+___
 
 ## 3. Fine-tuning-based incremental learning methods <a name="part3"></a>
 
@@ -230,7 +234,10 @@ Going further :
 * KD on output features (LUCIR, BSIL). Implementation hint : see the Cosine Embedding loss function [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
 * KD on intermediary representations (PODNet)
 
+
 __Balanced cross-entropy loss__
+
+TODO : KD on features
 
 ```bash
 python bsil_expe.py
@@ -239,6 +246,10 @@ python bsil_expe.py
 NB : The `BalancedCrossEntropy` class does not change the loss scaling per sample, but instead modifies the softmax distribution via logit adjustment. This is equivalent to shifting the logits using log class priors, and results in a prior-corrected prediction distribution. Thus, it is not equivalent to `CrossEntropyLoss(weight=...)`, which re-weights the loss per sample after softmax and is typically used to rebalance gradient contributions. In other words, `CrossEntropyLoss(weight=...)` is used to increase the loss for under-represented classes, whereas `BalancedCrossEntropy` is used to adjust predictions for class imbalance by biasing logits using prior frequencies.
 
 __Further reading__
+
+TODO add resources / biblio
+
+___
 
 ## 4. Incremental learning methods with a fixed encoder <a name="part4"></a>
 
