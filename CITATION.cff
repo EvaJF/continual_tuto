@@ -1,0 +1,33 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Tutorial on Continual Learning for Image Classification
+message: Plate-Forme Intelligence Artificielle 2025
+type: software
+authors:
+  - given-names: Eva
+    family-names: Feillet
+    orcid: 'https://orcid.org/0009-0007-4820-1599'
+    affiliation: Université Paris Dauphine-PSL
+  - given-names: Adrian
+    family-names: Popescu
+    affiliation: 'CEA list, Université Paris-Saclay'
+  - given-names: Céline
+    family-names: Hudelot
+    affiliation: 'MICS, CentraleSupélec, Université Paris-Saclay'
+identifiers:
+  - type: url
+    value: 'https://github.com/EvaJF/continual_tuto'
+    description: >-
+      Repository for PFIA 2025 tutorial on continual
+      learning for image classification
+repository-code: 'https://github.com/EvaJF/continual_tuto'
+keywords:
+  - continual learning
+  - incremental learning
+  - image classification
+  - tutorial
+  - transfer learning
+license: MIT
+version: '0.1'
