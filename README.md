@@ -3,9 +3,15 @@
 Repository for PFIA 2025 - Tutorial on Continual Learning for Image Classification
 
 __Contents__
-* section links
 
-## 1. Preliminaries 
+1. [Preliminaries](#part1)
+2. [The incremental learning framework](#part2)
+3. [Fine-tuning-based incremental learning methods](#part3)
+4. [Incremental learning methods with a fixed encoder](#part4)
+5. [Further reading](#part5)
+
+
+## 1. Preliminaries <a name="part1"></a>
 
 __Set-up__
 
@@ -57,7 +63,7 @@ TODO : detailed comment on joint expe
 * model, optimizer, scheduler
 * training loop
 
-## 2. The incremental learning framework
+## 2. The incremental learning framework <a name="part2"></a>
 
 __Types of incremental learning__
 
@@ -101,17 +107,59 @@ __Challenges__
 <img src="media/representation_drift.png" alt="representation drift">
 
 
-## 3. Fine-tuning-based incremental learning methods
+## 3. Fine-tuning-based incremental learning methods <a name="part3"></a>
 
 __Replay__
 
+```bash
+python replay_expe.py
+```
+
+*Memory buffer*
+
+See the `Memory` class implemented under `utils_cil.dataset.py`.
+
+Vary the number of samples in the replay buffer, look at the number of samples per class in the logs.
+
+Comment on the sampling strategy. How could it be improved ? Implement a different sampling strategy. 
+
+More on replay strategies : REFS TO ADD.
+
+*Weighted cross-entropy loss*
+
+Now replace the loss function with a weighted version. What happens ?
+
+```python
+CE_weights = [ 1-train_count_dict[k]/len(train_loader.dataset) for k in range(nb_curr_cl)]
+print(f"Class weights {CE_weights}")
+CE_weights = torch.tensor(CE_weights, device=device)
+loss_fn = nn.CrossEntropyLoss(weight = CE_weights)
+```
+
+
 __Knowledge distillation__
+
+Knowledge distillation on logits (LwF style, following Hinton et al.)
+
+```bash
+python distillation_expe.py
+```
+
+Going further : 
+* KD on output features (LUCIR, BSIL). Implementation hint : see the Cosine Embedding loss function [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
+* KD on intermediary representations (PODNet)
 
 __Balanced cross-entropy loss__
 
+```bash
+python bsil_expe.py
+```
+
+NB : The `BalancedCrossEntropy` class does not change the loss scaling per sample, but instead modifies the softmax distribution via logit adjustment. This is equivalent to shifting the logits using log class priors, and results in a prior-corrected prediction distribution. Thus, it is not equivalent to `CrossEntropyLoss(weight=...)`, which re-weights the loss per sample after softmax and is typically used to rebalance gradient contributions. In other words, `CrossEntropyLoss(weight=...)` is used to increase the loss for under-represented classes, whereas `BalancedCrossEntropy` is used to adjust predictions for class imbalance by biasing logits using prior frequencies.
+
 __Further reading__
 
-## 4. Incremental learning with a fixed encoder 
+## 4. Incremental learning methods with a fixed encoder <a name="part4"></a>
 
 aka classifier-incremental learning 
 
@@ -137,7 +185,7 @@ python ftextract --dataset food-101 --archi vits --pretrain lvd142m
 
 __NCM__
 
-```
+```bash
 python ncm_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
 ```
 
@@ -155,3 +203,20 @@ python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_
 ```
 
 __Further reading__
+
+RanPAC, FeTrIL...
+
+
+## 5. Further reading / useful links <a name="part5"></a>
+
+Prompt-based methods
+
+Other methods
+
+Useful repo
+
+Surveys
+
+____
+
+Cite this repo 
