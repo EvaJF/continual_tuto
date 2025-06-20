@@ -220,3 +220,13 @@ Surveys
 ____
 
 Cite this repo 
+
+```
+@software{Feillet_Tutorial_on_Continual,
+author = {Feillet, Eva and Popescu, Adrian and Hudelot, Céline},
+license = {MIT},
+title = {{Tutorial on Continual Learning for Image Classification}},
+url = {https://github.com/EvaJF/continual_tuto},
+version = {0.1}
+}
+```
