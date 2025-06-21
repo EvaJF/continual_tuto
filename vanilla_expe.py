@@ -13,6 +13,7 @@ from utils_tuto.utils import get_device, seed_all
 from utils_tuto.encoder import compute_num_params, myCNN
 from utils_tuto.dataset import get_MNIST_loaders
 from utils_tuto.perf import compute_forgetting
+import pandas as pd
 
 seed_all(42)
 
@@ -32,7 +33,7 @@ size_conv_2 = 16
 size_fc = 256
 
 # training hyperparameters
-EPOCHS = 2
+EPOCHS = 1
 lr = 0.01
 momentum = 0.9
 
@@ -210,20 +211,32 @@ print(">> Final acc {:.2f} <<".format(test_acc))
 print("\nAccuracy matrix over the steps")
 print(100 * acc_mat.round(2))
 
-# avg incr acc / macro
-print("\nMACRO Avg incr acc: {:.2f}".format(np.mean(test_acc_list)))
-print(
-    "MICRO Avg incr acc: {:.2f}".format(
-        np.average(test_acc_list, weights=nb_test_samples)
-    )
-)
-# avg forgetting / macro
-print("MACRO Avg forgetting: {:.2f}".format(100 * compute_forgetting(acc_mat)))
-print(
-    "MICRO Avg forgetting: {:.2f}".format(
-        100 * compute_forgetting(acc_mat, weights=nb_test_samples)
-    )
-)
+# avg incr acc / forgetting
+avg_incr_acc = np.mean(test_acc_list)
+avg_f = 100 * compute_forgetting(acc_mat[:,:-1] )
+print("\nAvg incr acc: {:.2f}".format(avg_incr_acc))
+print("MACRO Avg forgetting: {:.2f}".format(avg_f))
+
+data = {
+    "method" : ["vanilla"],
+    "nb_init_cl" : [nb_init_cl],
+    "nb_incr_cl" : [nb_incr_cl],
+    "nb_tot_cl" : [nb_tot_cl],
+    "memory" : [0], 
+    "CE_loss" : ["classic"],
+    "KD_loss" : ["None"],
+    "lr" : [lr], 
+    "epochs" : [EPOCHS],
+    "last_acc" : [test_acc],
+    "avg_incr_acc" : [avg_incr_acc],
+    "avg_f" : [avg_f]
+}
+df1 = pd.DataFrame.from_dict(data)
+print(df1)
+df2 = pd.read_csv('logs/results.csv')
+df2 = pd.concat([df2, df1], ignore_index=True)
+
+df2.to_csv(os.path.join('logs', 'results.csv'), index=False)
 
 elapsed = (time() - start) / 60  # elapsed time in minutes
 print("\nCompleted expe in {:.2f} min".format(elapsed))

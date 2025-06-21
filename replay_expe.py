@@ -13,6 +13,8 @@ from utils_tuto.utils import get_device, seed_all
 from utils_tuto.encoder import compute_num_params, myCNN
 from utils_tuto.dataset import get_MNIST_loaders_with_memory, Memory, class_count_dict
 from utils_tuto.perf import compute_forgetting
+from utils_tuto.loss import BalancedCrossEntropy
+import pandas as pd
 
 seed_all(42)
 
@@ -28,8 +30,9 @@ nb_steps = (nb_tot_cl - nb_init_cl) // nb_incr_cl  # number of incremental steps
 
 # replay strategy
 max_size = 200  # try 800, 2000
-cumul = False  # better use cumul = False for a given max_size
-nb_new = 50  # only used if cumul = True
+cumul = False 
+CE_type = "balanced" # "weighted" # "classic", 
+assert CE_type in ["weighted", "classic", "balanced"]
 
 # define model architecture
 size_conv_1 = 8
@@ -61,7 +64,7 @@ for step in range(nb_steps + 1):
         # initialize model
         model = myCNN(nb_init_cl, size_conv_1, size_conv_2, size_fc)
         # initialize memory buffer
-        memory = Memory(max_size=max_size, cumul=cumul, nb_new=nb_new)
+        memory = Memory(max_size=max_size)
     else:
         train_cl = range(nb_init_cl + nb_incr_cl * (step - 1), nb_curr_cl)
         test_cl = range(nb_curr_cl)
@@ -92,15 +95,17 @@ for step in range(nb_steps + 1):
 
     # optimization
     optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum)
-    loss_fn = nn.CrossEntropyLoss()
+    if CE_type == "classic" : 
+        loss_fn = nn.CrossEntropyLoss()
+    elif CE_type == "weighted" : 
+        CE_weights = [ 1-train_count_dict[k]/len(train_loader.dataset) for k in range(nb_curr_cl)]
+        print(f"Class weights {CE_weights}")
+        CE_weights = torch.tensor(CE_weights, device=device)
+        loss_fn = nn.CrossEntropyLoss(weight = CE_weights)
+    elif CE_type == "balanced" : 
+        freq = torch.tensor([train_count_dict[k] for k in range(nb_curr_cl)], device=device)
+        loss_fn = BalancedCrossEntropy(freq)
 
-    # freq = torch.tensor([train_count_dict[k] for k in range(nb_curr_cl)], device=device)
-    # loss_fn = BalancedCrossEntropy(freq)
-
-    # CE_weights = [ 1-train_count_dict[k]/len(train_loader.dataset) for k in range(nb_curr_cl)]
-    # print(f"Class weights {CE_weights}")
-    # CE_weights = torch.tensor(CE_weights, device=device)
-    # loss_fn = nn.CrossEntropyLoss(weight = CE_weights)
 
     # training loop (train/val)
     best_acc, best_model_state = 0.0, model.state_dict()
@@ -162,7 +167,7 @@ for step in range(nb_steps + 1):
     print("Best val acc {:.2f}".format(best_acc))
 
     # save best model
-    ckp_name = "mnist_vanilla_incr_step{}_best.pt".format(step)
+    ckp_name = "mnist_replay_incr_step{}_best.pt".format(step)
     ckp_path = os.path.join(ckp_root, ckp_name)
     print("\nSaving best model checkpoint under {}".format(ckp_path))
     torch.save(best_model_state, ckp_path)
@@ -236,20 +241,32 @@ print(">> Final acc {:.2f} <<".format(test_acc))
 print("\nAccuracy matrix over the steps")
 print(100 * acc_mat.round(2))
 
-# avg incr acc / macro
-print("\nMACRO Avg incr acc: {:.2f}".format(np.mean(test_acc_list)))
-print(
-    "MICRO Avg incr acc: {:.2f}".format(
-        np.average(test_acc_list, weights=nb_test_samples)
-    )
-)
-# avg forgetting / macro
-print("MACRO Avg forgetting: {:.2f}".format(100 * compute_forgetting(acc_mat)))
-print(
-    "MICRO Avg forgetting: {:.2f}".format(
-        100 * compute_forgetting(acc_mat, weights=nb_test_samples)
-    )
-)
+# avg incr acc / forgetting
+avg_incr_acc = np.mean(test_acc_list)
+avg_f = 100 * compute_forgetting(acc_mat[:,:-1] )
+print("\nAvg incr acc: {:.2f}".format(avg_incr_acc))
+print("MACRO Avg forgetting: {:.2f}".format(avg_f))
+
+data = {
+    "method" : ["replay"],
+    "nb_init_cl" : [nb_init_cl],
+    "nb_incr_cl" : [nb_incr_cl],
+    "nb_tot_cl" : [nb_tot_cl],
+    "memory" : [max_size], 
+    "CE_loss" : [CE_type],
+    "KD_loss" : ["None"],
+    "lr" : [lr], 
+    "epochs" : [EPOCHS],
+    "last_acc" : [test_acc],
+    "avg_incr_acc" : [avg_incr_acc],
+    "avg_f" : [avg_f]
+}
+df1 = pd.DataFrame.from_dict(data)
+print(df1)
+df2 = pd.read_csv('logs/results.csv')
+df2 = pd.concat([df2, df1], ignore_index=True)
+
+df2.to_csv(os.path.join('logs', 'results.csv'), index=False)
 
 elapsed = (time() - start) / 60  # elapsed time in minutes
 print("\nCompleted expe in {:.2f} min".format(elapsed))

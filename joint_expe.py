@@ -192,7 +192,7 @@ data = {
 df = pd.DataFrame.from_dict(data)
 print(df)
 os.makedirs('logs', exist_ok=True)
-df.to_csv(os.path.join('logs', 'results.csv'))
+df.to_csv(os.path.join('logs', 'results.csv'), index=False)
 
 elapsed = (time() - start) / 60  # elapsed time in minutes
 print(f"\nCompleted expe in {{:.2f}} min".format(elapsed))
