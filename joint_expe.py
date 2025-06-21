@@ -17,6 +17,7 @@ from utils_tuto.utils import get_device, seed_all
 from utils_tuto.encoder import compute_num_params, myCNN
 from time import time
 import copy
+import pandas as pd
 
 # we use GPU or MPS if available, otherwise CPU
 device = get_device()
@@ -173,6 +174,25 @@ print(confusion.int().numpy())
 print(f"\n=== Report - Joint training ===\n")
 print("Hyperparameters : epochs {}, lr {}, archi CNN {}/{}/{}".format(EPOCHS, lr, size_conv_1, size_conv_2, size_fc))
 print(f"\n>> Test accuracy : {{:.2f}} <<".format(test_acc))
+
+data = {
+    "method" : ["joint"],
+    "nb_init_cl" : [nb_tot_cl],
+    "nb_incr_cl" : [0],
+    "nb_tot_cl" : [nb_tot_cl],
+    "memory" : [0], 
+    "CE_loss" : ["classic"],
+    "KD_loss" : ["None"],
+    "lr" : [lr], 
+    "epochs" : [EPOCHS],
+    "last_acc" : [test_acc],
+    "avg_incr_acc" : [0.0],
+    "avg_f" : [0.0]
+}
+df = pd.DataFrame.from_dict(data)
+print(df)
+os.makedirs('logs', exist_ok=True)
+df.to_csv(os.path.join('logs', 'results.csv'))
 
 elapsed = (time() - start) / 60  # elapsed time in minutes
 print(f"\nCompleted expe in {{:.2f}} min".format(elapsed))
