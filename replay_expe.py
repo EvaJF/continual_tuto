@@ -31,7 +31,7 @@ nb_steps = (nb_tot_cl - nb_init_cl) // nb_incr_cl  # number of incremental steps
 # replay strategy
 max_size = 200  # try 800, 2000
 cumul = False 
-CE_type = "balanced" # "weighted" # "classic", 
+CE_type = "classic" # "weighted", "balanced" 
 assert CE_type in ["weighted", "classic", "balanced"]
 
 # define model architecture

@@ -190,7 +190,7 @@ class Memory(Dataset):
     def __init__(
         self,
         max_size: int,
-        cumul: bool,
+        cumul: bool = False,
         nb_new: int = 10,
         strategy: str = "random",
         steps: int = 0,
@@ -242,7 +242,7 @@ class Memory(Dataset):
             raise NotImplementedError("Only 'random' strategy is implemented.")
 
         # Step 1: filter the incoming dataset based on the memory state
-        # in other words, only samples from new classes should be added
+        # to only add samples from new classes into memory
         if len(self.targets) > 0:
             threshold = self.targets.max().item()
             mask = D_targets > threshold
