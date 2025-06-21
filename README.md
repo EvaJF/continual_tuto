@@ -165,7 +165,7 @@ We can also compare different incremental learning algorithms based on two compl
 
 The average incremental accuracy of a model trained over a $T$-step incremental process is defined as the average test accuracy of the model over the $T$ steps of the incremental process (rebuffi2017_icarl). 
 We denote it by $A$ and compute it as 
-$ A = \frac{1}{T} \sum_{i=1}^T Acc_i^{1:i}$, 
+$A = \frac{1}{T} \sum_{i=1}^T Acc_i^{1:i}$, 
 where $Acc_i^{1:i}$ is the accuracy of the model $\mathcal{M}_i$ on test samples from $\bigcup_{j=1}^i D_j$, after performing the learning step $s_i$.
 
 Implementation: in `vanilla_expe.py`, the variable `test_acc_list` contains the values $Acc_1^1, Acc_2^{1:2}, ... Acc_T^{1:T}$. We obtain the average incremental accuracy by computing the mean of this list. 
@@ -180,6 +180,7 @@ We denote it by $F$ and compute it as:
 where $f_i$ is the individual forgetting, computed as $f_i = \max_{i \leq k \leq T} Acc_k^i - Acc_T^i$
 
 Implementation : In `vanilla_expe.py`, the coefficient $i, j$ of the `acc_mat` matrix contains the accuracy $Acc_i^j$ of model $\mathcal{M}_i$ on the test samples from $D_j$. 
+We can also compute average forgetting at the class level. 
 
 ```python
 max_acc = np.max(acc_mat, axis=0)
@@ -197,13 +198,12 @@ __Further remarks on the challenges of CIL__
 
 Another illustration of the challenges of CIL
 
-* Representation drift when updating the encoder 
-<img src="media/representation_drift.png" alt="representation drift">
-
-* Representation overlap when being conservative on the encoder 
+* Representation overlap when encountering new classes
 
 <img src="media/representation_overlap.png" alt="representation overlap">
 
+* Representation drift when updating the encoder 
+<img src="media/representation_drift.png" alt="representation drift">
 
 ___
 
@@ -213,10 +213,8 @@ __Replay / Usage of a memory buffer__
 
 Some CIL methods assume the availability of a fixed-size memory buffer, which stores a small subset of past training samples (Rebuffi et al., 2017b).
 
-At any incremental step $s_i$​ with $i>1$, the training dataset is constructed as:
-
+At any incremental step $s_i$​ with $i>1$, the training dataset is constructed as
 $D_i \cup B_{1:i−1}$ 
-
 where $D_i$​ is the current batch of data and $B_{1:i−1} ⊆ D_1 \cup D_2 \cup ... D_{i-1}$​ represents the buffer content, containing a subset of images from previous training datasets.
 This buffer is used to mitigate forgetting by enabling the model to rehearse on representative examples from earlier tasks.
 
@@ -228,7 +226,7 @@ python replay_expe.py
 
 <u>Memory buffer: </u> See the `Memory` class implemented under `utils_cil.dataset.py`.
 
-> Vary the number of samples in the replay buffer, look at the number of samples per class in the logs.
+> Vary the number of samples in the replay buffer. How does it impact performance ?
 
 <u>Sampling strategy</u> Comment on the sampling strategy. How could it be improved ? Implement a different sampling strategy. 
 
@@ -247,7 +245,7 @@ __Knowledge distillation__
 
 Knowledge distillation on logits (LwF style, following Hinton et al.)
 
-using [KL div](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.kl_div.html) ?? TODO check LwF paper
+Currently using [KL div](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.kl_div.html) ?? TODO check LwF paper It was L2
 
 ```bash
 python distillation_expe.py
