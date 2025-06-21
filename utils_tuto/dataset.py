@@ -182,8 +182,10 @@ def class_count_dict(targets: torch.Tensor) -> dict:
     """
     Returns a dictionary {label: count} for the given targets tensor.
     """
+    cc_dict = {k : 0 for k in range(torch.max(targets).item())}
     labels, counts = torch.unique(targets, return_counts=True)
-    return {label.item(): count.item() for label, count in zip(labels, counts)}
+    cc_dict.update({label.item(): count.item() for label, count in zip(labels, counts)})
+    return cc_dict
 
 
 class Memory(Dataset):
