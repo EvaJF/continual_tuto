@@ -254,14 +254,10 @@ python distillation_expe.py
 Going further : 
 * KD on output features (LUCIR, BSIL). Implementation hint : see the Cosine Embedding loss function [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
 * KD on intermediary representations (PODNet)
-
-
-__Balanced cross-entropy loss__
-
-TODO : KD on features, [CosineEmbeddingLoss](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
+* Balanced Cross-Entropy Loss
 
 ```bash
-python bsil_expe.py
+python feature_distil_expe.py
 ```
 
 NB : The `BalancedCrossEntropy` class does not change the loss scaling per sample, but instead modifies the softmax distribution via logit adjustment. This is equivalent to shifting the logits using log class priors, and results in a prior-corrected prediction distribution. Thus, it is not equivalent to `CrossEntropyLoss(weight=...)`, which re-weights the loss per sample after softmax and is typically used to rebalance gradient contributions. In other words, `CrossEntropyLoss(weight=...)` is used to increase the loss for under-represented classes, whereas `BalancedCrossEntropy` is used to adjust predictions for class imbalance by biasing logits using prior frequencies.
