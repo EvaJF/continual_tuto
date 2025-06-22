@@ -3,7 +3,7 @@
 Repository for PFIA 2025 - Tutorial on Continual Learning for Image Classification
 ---
 
-The aim of this tutorial is to introduce the stakes, challenges and main algorithmic approaches of continual learning through an overview and practical exercises. It will focus on recent algorithms for learning an image classification model incrementally.
+The aim of this tutorial is to introduce the stakes, challenges and main algorithmic approaches of continual learning through an overview and practical exercises. It focuses on the main components of the recent algorithms proposed for learning an image classification model incrementally.
 
 __Contents__
 
