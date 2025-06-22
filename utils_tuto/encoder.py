@@ -53,6 +53,50 @@ class myCNN(nn.Module):
         self.fc = new_fc
 
 
+# Change the format of the forward for easy KD loss on features
+class myCNN_features(nn.Module):
+    def __init__(self, nb_tot_cl, size_conv_1, size_conv_2, size_fc):
+        super(myCNN_features, self).__init__()
+        self.nb_tot_cl = nb_tot_cl
+        self.size_conv_2 = size_conv_2
+        self.conv_1 = nn.Conv2d(
+            1, size_conv_1, 5, 1
+        )  # in_channels, out_channels, kernel_size, stride
+        self.conv_2 = nn.Conv2d(size_conv_1, size_conv_2, 5, 1)
+        # self.drop = nn.Dropout2d()
+        self.fc_1 = nn.Linear(4 * 4 * size_conv_2, size_fc)
+        self.fc = nn.Linear(size_fc, nb_tot_cl)
+
+    def forward(self, x):
+        x = F.relu(self.conv_1(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = F.relu(self.conv_2(x))
+        # x = F.relu(self.drop(self.conv_2(x)))
+        x = F.max_pool2d(x, 2, 2)
+        x = x.view(-1, 4 * 4 * self.size_conv_2)
+        feat = F.relu(self.fc_1(x))
+        out = self.fc(feat)
+        return {"features" : feat, "out" : out}
+
+    def update_fc(self, nb_incr_cl):
+        """
+        Replaces model.fc with a new fc layer with an additional nb_incr_cl classes.
+        Keeps original weights for the previous classes.
+        """
+
+        old_fc = self.fc
+        nb_old_cl = old_fc.out_features
+        in_features = old_fc.in_features
+        new_fc = nn.Linear(in_features, nb_old_cl + nb_incr_cl)
+
+        # Copy existing weights and biases
+        with torch.no_grad():
+            new_fc.weight[:nb_old_cl] = old_fc.weight
+            new_fc.bias[:nb_old_cl] = old_fc.bias
+
+        self.fc = new_fc
+
+
 def get_encoder(archi, pretrain):
 
     if archi == "resnet18":  # use torch
