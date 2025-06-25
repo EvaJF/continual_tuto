@@ -138,4 +138,4 @@ We print the test accuracy and final confusion matrix.
 
 Next, in `vanilla_expe.py` we present the same learning problem in an incremental learning set-up, e.g. instead of learning all 10 MNIST classes at once, learning them 2 by 2 by iteratively fine-tuning the model on the new subset of classes.
 
-TODO : See explanations (here)[link_to_add]
+*Get back to the main tutorial [here](../README.md).*
