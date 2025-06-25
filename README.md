@@ -52,9 +52,9 @@ Utility functions, e.g. dataloaders and performance metrics, can be found under 
 Additionally, running the scripts will create the following folders. 
 * `ckp` : to store model checkpoints
 * `data` : to store images and their vector representations computed with an encoder, e.g. when using the Food-101 dataset :
-    - the data will be downladed under `data/food-101`, 
-    - the image representations computed using a ResNet18 network pretrained on the ImageNet-1k dataset will be stored under `data/features/food-101/resnet18_in1k/`.
-* `logs` : to store experimental results
+    - `data/food-101` will contain the images, 
+    - `data/features/food-101/resnet18_in1k/` will contain the vector representations of the images computed using a ResNet18 network pretrained on the ImageNet-1k dataset.
+* `logs` : to store experimental results.
 
 NB : Data will be downloaded in the next steps. 
 
