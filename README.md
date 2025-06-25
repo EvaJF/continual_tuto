@@ -71,10 +71,10 @@ A supervised classification problem consists of building a mapping function $`\m
 An image classification model can typically be decomposed into an encoder $\phi : \mathcal{X} \rightarrow \mathbb{R}^H$, also called *feature extractor*, and a classifier $f : \mathbb{R}^H \rightarrow \mathbb{R}^{n}$, i.e. $\mathcal{M}_\theta = f \circ \phi$.
 The encoder produces a compact vector representation of the input image, called an *embedding* (or a *feature vector*, or a *latent representation*) and the classifier assigns a class to this representation. 
 
-> In `joint_expe.py` we train a small convolutional neural network on the MNIST dataset. This will be our starting point for the next experiments.
-Joint training represents the ideal scenario in terms of final performance but assumes full availability of all classes from the beginning. 
+> In `joint_expe.py` we train a small convolutional neural network to classify handwritten digits using the MNIST dataset. This will be our starting point for the next experiments.
+Joint training represents the ideal scenario in terms of final performance but assumes full availability of all classes from one end to another of model training, a hypothesis that not always holds. 
 
-* Execute the script. Identify the hyperparameters of the experiment. 
+* Execute the script. Analyse the performance report and identify the hyperparameters of the experiment. 
 
 ```bash
 python joint_expe.py
@@ -86,18 +86,18 @@ ___
 
 ## 2. The incremental learning framework <a name="part2"></a>
 
-The term *continual learning* was notably used by Ring in 1997 [Ring, 1997], with the following definition: « Continual learning is the constant development of increasingly complex behaviors, the
+The term *continual learning* was notably used by Ring in 1997 (Ring, 1997), with the following definition: « Continual learning is the constant development of increasingly complex behaviors, the
 process of building more complicated skills on top of those already developed. »
-The term *lifelong learning* is also used in the literature [Thrun, 1995]
+The term *lifelong learning* is also used in the literature (Thrun, 1995)
 
 In recent years, reasearch has focused on a particular form of continual learning, namely *incremental learning*. 
 
 __Types of incremental learning__
 
 The literature often distinguishes three types of incremental learning.
-* Task-Incremental Learning (TIL): progressively learn a series of semantically distinct tasks. In practice, each data sample has a task identifier. Example : learning to recognize hand-written digits, then learning to classify doodles.
-* Domain-Incremental Learning (DIL): the structure of the problem is the same across the learning steps, but the input distribution changes. Example : learning to recognize digits written by children, when learning to recognize digits written by adults. 
-* Class-Incremental Learning (CIL): a growing number of classes must be recognized, without task identity. Example: learning to recognize hand-written digits from 0 to 4, then learning to recognize hand-written digits from 5 to 9.
+* In Task-Incremental Learning (TIL), the goal is to progressively learn a series of (semantically) distinct tasks. In practice, each data sample has a task identifier. Example : learning to recognize hand-written digits, then learning to classify handmade doodles.
+* In Domain-Incremental Learning (DIL): the structure of the problem is the same across the learning steps (e.g. same number of classes), but the input distribution changes. Example : learning to recognize digits written by children, when learning to recognize digits written by adults. 
+* In Class-Incremental Learning (CIL), a growing number of classes must be recognized, without task identity. Example: learning to recognize hand-written digits from 0 to 4, then learning to recognize hand-written digits from 5 to 9. This is the setting we will focus on in the rest of this tutorial.
 
 <img src="media/IL_types.png" alt="Types of incremental learning">
 
@@ -116,18 +116,18 @@ Each class is only present in a single dataset.
 __Catastrophic forgetting and the stability-plasticity balance__
 
 A major issue faced by continual learning models is their tendency to
-forget previously acquired information when confronted with new information. The phenomenon is called *catastrophic forgetting* or *catastrophic interference*, as it is caused by the "interference" of new information
-with previous information [French, 1999; McCloskey and Cohen, 1989]. 
+forget previously acquired information when confronted with new information. This phenomenon is called *catastrophic forgetting* or *catastrophic interference*, as it is caused by the "interference" of new information
+with previous information (French, 1999; McCloskey and Cohen, 1989). 
 
-Some works in continual learning take inspiration from neuroscience. In particular, the terms of *stability* and *plasticity*, originally introduced to describe biological neural networks [Mermillod et al., 2013], are also found in the continual learning literature. 
+Some works in continual learning take inspiration from neuroscience. In particular, the terms of *stability* and *plasticity*, originally introduced to describe biological neural networks (Mermillod et al., 2013), are also found in the continual learning literature. 
 * Stability refers to the ability to retain past information.
-* Plasticity to the ability to adapt an existing representation to take new information into account. 
+* Plasticity to the ability to take new information into account. 
 
-Stability and plasticity are often presented as two complementary but competing aspects of learning.
+Stability and plasticity are often presented as two complementary but competing aspects of learning. 
 
 __Vanilla fine-tuning__
 
-> In `vanilla_expe.py`, we implement the basic framework for learning MNIST classification incrementally (e.g. learning the 10 classes in five steps of 2 classes each instead of learning all 10 classes together). 
+> In `vanilla_expe.py`, we implement the basic framework for learning MNIST digit classification incrementally (e.g. learning the 10 classes in five steps of 2 classes each instead of learning all 10 classes together). 
 
 ```bash 
 python vanilla_expe.py
