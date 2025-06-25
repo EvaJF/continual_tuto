@@ -133,7 +133,7 @@ __Vanilla fine-tuning__
 python vanilla_expe.py
 ```
 
-* Run the script and compare the final test accuracy with the one obtained previously with the joint training strategy. 
+emoji:apple  Run the script and compare the final test accuracy with the one obtained previously with the joint training strategy. 
 * In the performance report, look at the matrix which coefficient $(i, j)$ displays $Acc_i^j$, the accuracy of model $\mathcal{M}_i$ on the test samples from $D_j$. What happened ?
 
 __If the parameters of a neural network are naively adjusted to the latest training data, a
