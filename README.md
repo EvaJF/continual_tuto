@@ -133,14 +133,8 @@ __Vanilla fine-tuning__
 python vanilla_expe.py
 ```
 
-emoji:apple  Run the script and compare the final test accuracy with the one obtained previously with the joint training strategy. 
-* In the performance report, look at the matrix which coefficient $(i, j)$ displays $Acc_i^j$, the accuracy of model $\mathcal{M}_i$ on the test samples from $D_j$. What happened ?
-
-__If the parameters of a neural network are naively adjusted to the latest training data, a
-procedure we refer to as *vanilla fine-tuning*, the model will overfit to the latest training data and information that was useful for classifying the previous data may be forgotten.__ This corresponds to a high plasticity and low stability of the model, resulting in an abrupt degradation of the model's performance on past data.
-
-
-* Compare the training loop of `vanilla_expe.py`with the training loop of `joint_expe.py`. In particular, take a look at the following aspects.
+* Get familiar with the structure of the script: what has changed ?
+Compare the training loop of `vanilla_expe.py`with the training loop of `joint_expe.py`. 
 
 <u>Incremental scenario set-up: </u> Classes are introduced progressively (e.g. 2 at a time here).
 ```python
@@ -163,12 +157,21 @@ At each step, the model is tested on all classes seen so far.
 <u>Performance evaluation:</u> We can use the final accuracy to compare with joint training. 
 We can also compare different incremental learning algorithms based on two complementary indicators, namely average incremental accuracy and average forgetting.
 
-The average incremental accuracy of a model trained over a $T$-step incremental process is defined as the average test accuracy of the model over the $T$ steps of the incremental process (rebuffi2017_icarl). 
+* Run the script and compare the final test accuracy with the one obtained previously with the joint training strategy. Look at the confusion matrices. What happened ?
+
+__If the parameters of a neural network are naively adjusted to the latest training data, a
+procedure we refer to as *vanilla fine-tuning*, the model successively overfits to the latest training data and information that was useful for classifying the previous data may be forgotten, resulting in an abrupt degradation of the model's performance on past data.__ This corresponds to a high plasticity and low stability of the model.
+
+__Evaluation__
+
+The average incremental accuracy of a model trained over a $T$-step incremental process is defined as the average test accuracy of the model over the $T$ steps of the incremental process (Rebuffi et al., 2017). 
 We denote it by $A$ and compute it as 
-$A = \frac{1}{T} \sum_{i=1}^T Acc_i^{1:i}$, 
+```math
+A = \frac{1}{T} \sum_{i=1}^T Acc_i^{1:i},
+``` 
 where $Acc_i^{1:i}$ is the accuracy of the model $\mathcal{M}_i$ on test samples from $\bigcup_{j=1}^i D_j$, after performing the learning step $s_i$.
 
-Implementation: in `vanilla_expe.py`, the variable `test_acc_list` contains the values $Acc_1^1, Acc_2^{1:2}, ... Acc_T^{1:T}$. We obtain the average incremental accuracy by computing the mean of this list. 
+Implementation: in `vanilla_expe.py`, the variable `test_acc_list` contains the values $Acc_1^1, Acc_2^{1:2}, ... Acc_T^{1:T}$. We obtain the average incremental accuracy by computing the mean of this list. Note that here we chose not the weigh the terms of the sum. 
 
 ```python
 print("\nAvg incr acc: {:.2f}".format(np.mean(test_acc_list)))
@@ -180,13 +183,14 @@ We denote it by $F$ and compute it as:
 where $f_i$ is the individual forgetting, computed as $f_i = \max_{i \leq k \leq T} Acc_k^i - Acc_T^i$
 
 Implementation : In `vanilla_expe.py`, the coefficient $i, j$ of the `acc_mat` matrix contains the accuracy $Acc_i^j$ of model $\mathcal{M}_i$ on the test samples from $D_j$. 
-We can also compute average forgetting at the class level. 
+Note that we chose to compute forgetting at the task level here but we could also compute it at the class level. 
 
 ```python
 max_acc = np.max(acc_mat, axis=0)
 last_acc = acc_mat[-1]
 f = np.average(max_acc-last_acc)
 ```
+* In the performance report, look at the last matrix. Its  coefficient $(i, j)$ corresponds to $Acc_i^j$, the accuracy of model $\mathcal{M}_i$ on the test samples from $D_j$. 
 
 * What could be improved in this vanilla fine-tuning experiment ? (Hint : validation set, learning rate, parameter selection).
 
@@ -196,7 +200,9 @@ vanilla fine-tuning the low baseline.
 
 __Further remarks on the challenges of CIL__
 
-Another illustration of the challenges of CIL
+So what should we do ? 
+Should we freeze the encoder in order to prevent forgetting ? But then, the encoder may not be well suited to the new classes. 
+If we update the encoder, then how ?
 
 * Representation overlap when encountering new classes
 
@@ -205,34 +211,52 @@ Another illustration of the challenges of CIL
 * Representation drift when updating the encoder 
 <img src="media/representation_drift.png" alt="representation drift">
 
+Let's implement some of the main strategies for learning a classification problem incrementally.
 ___
 
 ## 3. Fine-tuning-based incremental learning methods <a name="part3"></a>
 
+In this part of the tutorial, we focus on fine-tuning-based CIL methods, i.e. mehtods that update the encoder as well as the classifier.
+
 __Replay / Usage of a memory buffer__
 
 Some CIL methods assume the availability of a fixed-size memory buffer, which stores a small subset of past training samples (Rebuffi et al., 2017b).
+In this line of work, at any incremental step $s_i$​ with $i>1$, the training dataset is constructed as
+$$D_i \cup B_{1:i−1}$$ 
+where $D_i$​ is the current batch of data and $B_{1:i−1} ⊆ D_1 \cup D_2 \cup ... D_{i-1}$​ represents the buffer content. 
+The buffer is used to mitigate forgetting by enabling the model to rehearse on representative examples from earlier tasks.
 
-At any incremental step $s_i$​ with $i>1$, the training dataset is constructed as
-$D_i \cup B_{1:i−1}$ 
-where $D_i$​ is the current batch of data and $B_{1:i−1} ⊆ D_1 \cup D_2 \cup ... D_{i-1}$​ represents the buffer content, containing a subset of images from previous training datasets.
-This buffer is used to mitigate forgetting by enabling the model to rehearse on representative examples from earlier tasks.
+> In `replay_expe.py` we improve upon the previous vanilla fine-tuning method by adding a memory buffer. 
 
-> In `replay_expe.py` we improve upon the previous vanilla fine-tuning method by adding a memory buffer. Run the script and compare the confusion matrices across the incremental upadates. What happens ? Compare the accuracy and forgetting values.
+* Compare `replay_expe.py`with `vanilla_expe.py`. In particular, see the `Memory` class implemented under `utils_cil.dataset.py`.
+
+* Run the script and compare the confusion matrices across the incremental upadates. What happens ? Compare the accuracy and forgetting values.
 
 ```bash
 python replay_expe.py
 ```
 
-<u>Memory buffer: </u> See the `Memory` class implemented under `utils_cil.dataset.py`.
+* <u>Memory size</u> Vary the number of samples in the replay buffer. How does it impact performance ?
 
-> Vary the number of samples in the replay buffer. How does it impact performance ?
+```python
+# replay strategy
+max_size = 200  # try 800, 2000
+```
+* <u>Sampling strategy</u> Comment on the sampling strategy. How could it be improved ? Implement a different sampling strategy. 
 
-<u>Sampling strategy</u> Comment on the sampling strategy. How could it be improved ? Implement a different sampling strategy. 
+More on replay strategies : __REFS TO ADD !!__
+* _Herding_ in iCaRL (Rebuffi et al. 2017)
+* Compressing the samples (e.g. select pixels)
+* Optimizing the samples (Mnemonics by Li et al. 2020)
+* GDumb (Prabhu et al., 2020) greedily collects incoming training samples in a memory buffer and
+then uses them to train a model from scratch at test time.
+* Bias Calibration method (BiC) by Wu et al. [2019b]: at each incremental step, a validation set is used to train an
+additional layer appended to the network to compensate for the bias of the classification layer towards more recent classes.
+* Past examples can be used for guiding knowledge distillation (see next subsection).
+* Latent replay
+* Generative replay
 
-More on replay strategies : REFS TO ADD.
-
-<u>Dealing with class imbalance:</u> Replace the loss function with a weighted version. What happens ? What other strategies could you implement to deal with class imbalance ?
+* <u>Dealing with class imbalance:</u> Replace the loss function with a weighted version. Is it effective ? What other strategies could you implement to deal with class imbalance ?
 
 ```python
 CE_weights = [ 1-train_count_dict[k]/len(train_loader.dataset) for k in range(nb_curr_cl)]
@@ -241,36 +265,50 @@ CE_weights = torch.tensor(CE_weights, device=device)
 loss_fn = nn.CrossEntropyLoss(weight = CE_weights)
 ```
 
+Further reading: Balanced Softmax for Incremental Learning by Jodelet el al. (2023). See implementation in `utils_tuto/loss.py`.
+
+NB : The `BalancedCrossEntropy` class does not change the loss scaling per sample, but instead modifies the softmax distribution via logit adjustment. This is equivalent to shifting the logits using log class priors, and results in a prior-corrected prediction distribution. Thus, it is not equivalent to `CrossEntropyLoss(weight=...)`, which re-weights the loss per sample after softmax and is typically used to rebalance gradient contributions. In other words, `CrossEntropyLoss(weight=...)` is used to increase the loss for under-represented classes, whereas `BalancedCrossEntropy` is used to adjust predictions for class imbalance by biasing logits using prior frequencies.
+
+
 __Knowledge distillation__
 
-Knowledge distillation on logits (LwF style, following Hinton et al.)
+Knowledge Distillation was proposed by Bucilua et al. in 2006 for model compression and adapted for deep neural networks by Hinton et al. in 2015.
+It is a method for transferring knowledge from a _teacher_ model $\mathcal{M}$ to a (usually smaller) _student_ model $\mathcal{M}'$. 
+The parameters of the teacher model are kept fixed, while the parameters of the student network are updated so that it mimics the behavior of the teacher model.
 
-Currently using [KL div](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.kl_div.html) ?? TODO check LwF paper It was L2
+For an input image $x$, let $z \in [0,1]^n$ and $z' \in [0,1]^n$ be the vectors corresponding to the scores computed after softmax by the teacher and student models, respectively. 
+The loss function of the student model includes a term $\mathcal{L}_{KD}$ that penalizes a discrepancy between the output of the student model and the output of the teacher model. 
+
+_Learning without forgetting_ (Li and Hoeim, 2017) was the first method to implement knowledge distillation in the case of incremental learning. 
+At a given step $s_t$, for a given input sample $x \in D_t$, the knowledge distillation loss is used in combination with the classification loss to constrain the output of the current model to stay close to the output of the previous model. 
+The teacher model is the previous model $\mathcal{M}_{t-1}$ obtained at step $s_{t-1}$ and the student model is the current model $\mathcal{M}_t$.
+
+> In `distillation_expe.py` we implement the _Learning without forgetting method_. Note that this method was originally proposed without a memory buffer. 
+
+* Run the code and play with the hyperparameters. Compare the final accuracy and the confusion matrices with the ones obtained in previous experiments.
 
 ```bash
 python distillation_expe.py
 ```
 
-Going further : 
-* KD on output features (LUCIR, BSIL). Implementation hint : see the Cosine Embedding loss function [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
-* KD on intermediary representations (PODNet)
-* Balanced Cross-Entropy Loss
+Currently using [KL div](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.kl_div.html) ?? TODO check LwF paper It was L2
+__TODO add regularisation and check how CE is computed to comply with LwF paper !!__
+
+* Going further : Implement variations of the knowledge distillation loss.
+    * KD on image embeddings (LUCIR, BSIL). Implementation hint: see the cosine embedding loss [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
+    * KD on intermediary representations (PODNet)
+
+> In `feature_distil_expe.py` we provide the basis for implementing feature distillation.
 
 ```bash
 python feature_distil_expe.py
 ```
 
-NB : The `BalancedCrossEntropy` class does not change the loss scaling per sample, but instead modifies the softmax distribution via logit adjustment. This is equivalent to shifting the logits using log class priors, and results in a prior-corrected prediction distribution. Thus, it is not equivalent to `CrossEntropyLoss(weight=...)`, which re-weights the loss per sample after softmax and is typically used to rebalance gradient contributions. In other words, `CrossEntropyLoss(weight=...)` is used to increase the loss for under-represented classes, whereas `BalancedCrossEntropy` is used to adjust predictions for class imbalance by biasing logits using prior frequencies.
-
-__Further reading__
-
-TODO add resources / biblio
-
 ___
 
 ## 4. Incremental learning methods with a fixed encoder <a name="part4"></a>
 
-aka classifier-incremental learning 
+In this section of the tutorial, we focus on incremental learning methods that use a fixed encoder, i.e. only the parameters of the classifier are updated. This line of work is also known as _classifier-incremental learning_. 
 
 __Get the data__
 
@@ -344,10 +382,26 @@ rm -r cil/
 ```
 ____
 
+This tutorial (in particular, the illustrations) is based on my thesis manuscript. Please consider citing the manuscript if you wish to reuse some of the content ! 
+
+```
+@phdthesis{feillet:tel-05062088,
+  TITLE = {{Analysis and Recommendation Methods for Class-Incremental Learning}},
+  AUTHOR = {Feillet, Eva},
+  URL = {https://theses.hal.science/tel-05062088},
+  NUMBER = {2024UPAST166},
+  SCHOOL = {{Universit{\'e} Paris-Saclay}},
+  YEAR = {2024},
+  MONTH = Dec,
+  KEYWORDS = {Deep learning ; Continual learning ; Frugality ; Recommendation ; Image classification ; Apprentissage profond ; Apprentissage continu ; Frugalit{\'e} ; Recommandation ; Classification d'image},
+  TYPE = {Theses},
+  PDF = {https://theses.hal.science/tel-05062088v1/file/143947_FEILLET_2024_archivage.pdf},
+  HAL_ID = {tel-05062088},
+  HAL_VERSION = {v1},
+}
+```
+
 Cite this repo 
-
-Illustrations are all taken from  TODO CITE manuscript. 
-
 
 ```
 @software{Feillet_Tutorial_on_Continual,
