@@ -66,7 +66,7 @@ In the following, we consider the case of a multi-class classification task with
 
 <img src="media/pred_pipeline.png" alt="prediction pipeline">
 
-A supervised classification problem consists of building a mapping function $\mathcal{M}_{\theta}$ that tries to relate $x$ to $y$ as closely as possible, i.e. for each $(x,y)\in D$, to have $\mathcal{M}_\theta(x)~\approx y$. This mapping function is referred to as a model. In this tutorial, the models we consider are neural networks. 
+A supervised classification problem consists of building a mapping function $`\mathcal{M}_\theta`$ that tries to relate $x$ to $y$ as closely as possible, i.e. for each $(x,y)\in D$, to have $\mathcal{M}_\theta(x)~\approx y$. This mapping function is referred to as a model. In this tutorial, the models we consider are neural networks. 
 
 An image classification model can typically be decomposed into an encoder $\phi : \mathcal{X} \rightarrow \mathbb{R}^H$, also called *feature extractor*, and a classifier $f : \mathbb{R}^H \rightarrow \mathbb{R}^{n}$, i.e. $\mathcal{M}_\theta = f \circ \phi$.
 The encoder produces a compact vector representation of the input image, called an *embedding* (or a *feature vector*, or a *latent representation*) and the classifier assigns a class to this representation. 
