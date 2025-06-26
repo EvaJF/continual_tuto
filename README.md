@@ -169,7 +169,7 @@ We denote it by $A$ and compute it as
 ```math
 A = \frac{1}{T} \sum_{i=1}^T Acc_i^{1:i},
 ``` 
-where $Acc_i^{1:i}$ is the accuracy of the model $\mathcal{M}_i$ on test samples from $\bigcup_{j=1}^i D_j$, after performing the learning step $s_i$.
+where $Acc_i^{1:i}$ is the accuracy of the model $`\mathcal{M}_i`$ on test samples from $`\bigcup_{j=1}^i D_j`$, after performing the learning step $s_i$.
 
 Implementation: in `vanilla_expe.py`, the variable `test_acc_list` contains the values $Acc_1^1, Acc_2^{1:2}, ... Acc_T^{1:T}$. We obtain the average incremental accuracy by computing the mean of this list. Note that here we chose not the weigh the terms of the sum. 
 
@@ -177,10 +177,12 @@ Implementation: in `vanilla_expe.py`, the variable `test_acc_list` contains the 
 print("\nAvg incr acc: {:.2f}".format(np.mean(test_acc_list)))
 ```
 
-The average forgetting of a model trained over a $T$-step process is the average of the accuracy gaps $f_i, i \in \llbracket 1,T-1 \rrbracket$, computed for each data subset $D_i$, as the difference between the best accuracy achieved for $D_i$ at any step $s_k$, with $k \leq i$, by a model $\mathcal{M}_k$, and the accuracy of the final model $\mathcal{M}_T$ on $D_i$. 
+The average forgetting of a model trained over a $T$-step process is the average of the accuracy gaps $f_i, i \in [1,T-1]$, computed for each data subset $D_i$, as the difference between the best accuracy achieved for $D_i$ at any step $s_k$, with $k \leq i$, by a model $`\mathcal{M}_k`$, and the accuracy of the final model $`\mathcal{M}_T`$ on $`D_i`$. 
 We denote it by $F$ and compute it as: 
-    $ F = \frac{1}{T-1} \sum_{i=1}^{T-1} f_i $,
-where $f_i$ is the individual forgetting, computed as $f_i = \max_{i \leq k \leq T} Acc_k^i - Acc_T^i$
+```math
+F = \frac{1}{T-1} \sum_{i=1}^{T-1} f_i
+```
+where $f_i$ is the individual forgetting, computed as $`f_i = \max_{i \leq k \leq T} Acc_k^i - Acc_T^i`$
 
 Implementation : In `vanilla_expe.py`, the coefficient $i, j$ of the `acc_mat` matrix contains the accuracy $Acc_i^j$ of model $\mathcal{M}_i$ on the test samples from $D_j$. 
 Note that we chose to compute forgetting at the task level here but we could also compute it at the class level. 
@@ -244,17 +246,17 @@ max_size = 200  # try 800, 2000
 ```
 * <u>Sampling strategy</u> Comment on the sampling strategy. How could it be improved ? Implement a different sampling strategy. 
 
-More on replay strategies : __REFS TO ADD !!__
-* _Herding_ in iCaRL (Rebuffi et al. 2017)
-* Compressing the samples (e.g. select pixels)
-* Optimizing the samples (Mnemonics by Li et al. 2020)
-* GDumb (Prabhu et al., 2020) greedily collects incoming training samples in a memory buffer and
+Further reading on replay strategies :
+_Herding_ in iCaRL (Rebuffi et al. 2017);
+Compressing samples (e.g. select pixels);
+Optimizing the samples (Mnemonics by Li et al. 2020);
+GDumb (Prabhu et al., 2020) greedily collects incoming training samples in a memory buffer and
 then uses them to train a model from scratch at test time.
-* Bias Calibration method (BiC) by Wu et al. [2019b]: at each incremental step, a validation set is used to train an
+Bias Calibration method (BiC) by Wu et al. (2019): at each incremental step, a validation set is used to train an
 additional layer appended to the network to compensate for the bias of the classification layer towards more recent classes.
-* Past examples can be used for guiding knowledge distillation (see next subsection).
-* Latent replay
-* Generative replay
+Latent replay;
+Generative replay;
+Past examples can be used for knowledge distillation (see next subsection).
 
 * <u>Dealing with class imbalance:</u> Replace the loss function with a weighted version. Is it effective ? What other strategies could you implement to deal with class imbalance ?
 
@@ -295,8 +297,8 @@ Currently using [KL div](https://docs.pytorch.org/docs/stable/generated/torch.nn
 __TODO add regularisation and check how CE is computed to comply with LwF paper !!__
 
 * Going further : Implement variations of the knowledge distillation loss.
-    * KD on image embeddings (LUCIR, BSIL). Implementation hint: see the cosine embedding loss [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
-    * KD on intermediary representations (PODNet)
+    - KD on image embeddings (LUCIR, BSIL). Implementation hint: see the cosine embedding loss [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
+    - KD on intermediary representations (PODNet)
 
 > In `feature_distil_expe.py` we provide the basis for implementing feature distillation.
 
@@ -412,3 +414,9 @@ url = {https://github.com/EvaJF/continual_tuto},
 version = {0.1}
 }
 ```
+
+___
+
+## References
+
+To add OR directly add links in the text
