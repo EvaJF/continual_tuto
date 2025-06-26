@@ -13,9 +13,9 @@ __Contents__
 4. [Incremental learning methods with a fixed encoder](#part4)
 5. [Further reading](#part5)
 
-Citation (#cite)
+[Citation](#cite)
 
-References (#refs)
+[References](#refs)
 
 ___
 
