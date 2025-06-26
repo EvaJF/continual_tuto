@@ -46,7 +46,7 @@ __Repository structure__
 
 This repository contains scripts for training an image classification model following different methods. 
 * Fine-tuning-based incremental learning methods are illustrated using the MNIST dataset. See `joint_expe.py` for classic joint learning, `vanilla_expe.py` for vanilla fine-tuning across incremental learning steps, `replay_expe.py` for replay strategies, `distillation_expe.py` for knowledge distillation.
-* Incremental learning methods that are based on a fixed encoder are illustrated on larger scale datasets (Flowers-102, Food-101). See `ncm_expe.py` for the Nearest Class Mean classifier (Rebuffi et al., 2017), `dslda_expe.py` for Deep Streaming LDA (Hayes et al., 2020), `fecam1_expe.py` for FeCAM with a common covariance matrix and `fecamN_expe.py`for FeCAM with one covariance matrix per class (Goswani et al., 2024).
+* Incremental learning methods that are based on a fixed encoder are illustrated on larger scale datasets (Flowers-102, Food-101). See `ncm_expe.py` for the Nearest Class Mean classifier (Rebuffi et al., 2017), `dslda_expe.py` for Deep Streaming LDA (Hayes et al., 2020), `fecam1_expe.py` for FeCAM with a common covariance matrix and `fecamN_expe.py`for FeCAM with one covariance matrix per class (Goswami et al., 2024).
 Utility functions, e.g. dataloaders and performance metrics, can be found under `utils_tuto`. 
 
 Additionally, running the scripts will create the following folders. 
@@ -246,7 +246,7 @@ max_size = 200  # try 800, 2000
 ```
 * <u>Sampling strategy</u> Comment on the sampling strategy. How could it be improved ? Implement a different sampling strategy. 
 
-Further reading on replay strategies :
+__Further reading on replay strategies__:
 _Herding_ in iCaRL (Rebuffi et al. 2017);
 Compressing samples (e.g. select pixels);
 Optimizing the samples (Mnemonics by Li et al. 2020);
@@ -267,7 +267,7 @@ CE_weights = torch.tensor(CE_weights, device=device)
 loss_fn = nn.CrossEntropyLoss(weight = CE_weights)
 ```
 
-Further reading: Balanced Softmax for Incremental Learning by Jodelet el al. (2023). See implementation in `utils_tuto/loss.py`.
+__Further reading on class imbalance__: Balanced Softmax for Incremental Learning by Jodelet el al. (2023). See implementation in `utils_tuto/loss.py`.
 
 NB : The `BalancedCrossEntropy` class does not change the loss scaling per sample, but instead modifies the softmax distribution via logit adjustment. This is equivalent to shifting the logits using log class priors, and results in a prior-corrected prediction distribution. Thus, it is not equivalent to `CrossEntropyLoss(weight=...)`, which re-weights the loss per sample after softmax and is typically used to rebalance gradient contributions. In other words, `CrossEntropyLoss(weight=...)` is used to increase the loss for under-represented classes, whereas `BalancedCrossEntropy` is used to adjust predictions for class imbalance by biasing logits using prior frequencies.
 
@@ -296,9 +296,14 @@ python distillation_expe.py
 Currently using [KL div](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.kl_div.html) ?? TODO check LwF paper It was L2
 __TODO add regularisation and check how CE is computed to comply with LwF paper !!__
 
-* Going further : Implement variations of the knowledge distillation loss.
-    - KD on image embeddings (LUCIR, BSIL). Implementation hint: see the cosine embedding loss [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
-    - KD on intermediary representations (PODNet)
+
+__Further reading on knowledge distillation in CIL__:
+- KD on image embeddings (LUCIR by Hu et al., 2019, BSIL by Jodelet et al., 2022)
+- KD on intermediary representations (PODNet)
+
+* Implement a variation of the knowledge distillation loss.
+Implementation hint: see the cosine embedding loss [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
+
 
 > In `feature_distil_expe.py` we provide the basis for implementing feature distillation.
 
@@ -351,20 +356,31 @@ python fecam1_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_
 python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
 ```
 
-__Further reading__
+__Further reading on classifier-incremental learning__:
 
-RanPAC, FeTrIL...
+* latent replay (Ostapenko et al., 2022)
+* RanPAC (McDonnell et al., 2024)
+* FeTrIL (Petit et al., 2023)
 
 
-## 5. Further reading / useful links <a name="part5"></a>
 
-Varying the scenario 
+## 5. Further reading on CIL <a name="part5"></a>
 
-Prompt-based methods
+__Impact of the scenario__ 
+Belouadah, Feillet
 
-Surveys
+__Impact of pre-training on incremental learning performance__
+Petit, 
+Feillet
 
-Useful repos
+__Prompt-based methods__ A recent line of work proposes to dynamically prompt a pretrained transformer network to learn a growing number of classes. See [Wang
+et al., 2022c,d; Smith et al., 2023a; Jung et al., 2023]. 
+
+__Surveys__
+Masana, De Lange, Belouadah, van de Ven. , Dagstuhl
+
+__Useful repositories__
+PyCIL, Awasome continual learning
 
 ____
 
@@ -420,3 +436,94 @@ ___
 ## References
 
 To add OR directly add links in the text
+
+Belouadah, E., Popescu, A., and Kanellos, I. (2021). A comprehensive study of class incremental learning
+algorithms for visual tasks. Neural Networks, 135:38–54.
+
+Bucilua, C., Caruana, R., and Niculescu-Mizil, A. (2006). Model compression. Proceedings of the 12 th
+ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, 3.
+
+De Lange, M., Aljundi, R., Masana, M., Parisot, S., Jia, X., Leonardis, A., Slabaugh, G., and Tuytelaars, T.
+(2021). A continual learning survey: Defying forgetting in classification tasks. IEEE transactions on
+pattern analysis and machine intelligence, 44(7):3366–3385.
+
+Dohare, S., Sutton, R. S., and Mahmood, A. R. (2021). Continual backprop: Stochastic gradient descent
+with persistent randomness. arXiv preprint arXiv:2108.06325.
+
+Douillard, A., Cord, M., Ollion, C., Robert, T., and Valle, E. (2020). Podnet: Pooled outputs distillation for
+small-tasks incremental learning. In Computer vision-ECCV 2020-16th European conference, Glasgow,
+UK, August 23-28, 2020, Proceedings, Part XX, volume 12365, pages 86–102. Springer.
+
+Feillet, Eva, Adrian Popescu, and Céline Hudelot. "A Reality Check on Pre-training for Exemplar-free Class-Incremental Learning." 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV). IEEE, 2025.
+
+French, R. M. (1999). Catastrophic forgetting in connectionist networks. Trends in cognitive sciences,
+3(4):128–135.
+
+Goswami, D., Liu, Y., Twardowski, B., and van de Weijer, J. (2024). Fecam: Exploiting the heterogeneity
+of class distributions in exemplar-free continual learning. Advances in Neural Information Processing
+Systems, 36.
+
+Hayes, T. L. and Kanan, C. (2020). Lifelong machine learning with deep streaming linear discriminant
+analysis. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+Workshops, pages 220–221.
+
+Hinton, G. E., Vinyals, O., and Dean, J. (2015). Distilling the knowledge in a neural network. CoRR,
+abs/1503.02531.
+
+Jodelet, Q., Liu, X., and Murata, T. (2022). Balanced softmax cross-entropy for incremental learning with
+and without memory. Computer Vision and Image Understanding, 225:103582.
+
+Kirkpatrick, J., Pascanu, R., Rabinowitz, N., Veness, J., Desjardins, G., Rusu, A. A., Milan, K., Quan,
+J., Ramalho, T., Grabska-Barwinska, A., et al. (2017). Overcoming catastrophic forgetting in neural
+networks. Proceedings of the national academy of sciences, 114(13):3521–3526.
+
+Lange, M. D., Aljundi, R., Masana, M., Parisot, S., Jia, X., Leonardis, A., Slabaugh, G. G., and Tuytelaars,
+T. (2019). Continual learning: A comparative study on how to defy forgetting in classification tasks.
+CoRR, abs/1909.08383.
+
+Masana, M., Liu, X., Twardowski, B., Menta, M., Bagdanov, A. D., and Van De Weijer, J. (2022).
+Class-incremental learning: survey and performance evaluation on image classification. IEEE TPAMI,
+45(5):5513–5533.
+
+McCloskey, M. and Cohen, N. J. (1989). Catastrophic interference in connectionist networks: The
+sequential learning problem. The Psychology of Learning and Motivation, 24:104–169.
+
+McDonnell, M. D., Gong, D., Parvaneh, A., Abbasnejad, E., and van den Hengel, A. (2024). Ranpac:
+Random projections and pre-trained models for continual learning. Advances in Neural Information
+Processing Systems, 36.
+
+Mermillod, M., Bugaiska, A., and Bonin, P. (2013). The stability-plasticity dilemma: investigating
+the continuum from catastrophic forgetting to age-limited learning effects. Frontiers in Psychology,
+4:504–504.
+
+Ostapenko, O., Lesort, T., Rodriguez, P., Arefin, M. R., Douillard, A., Rish, I., and Charlin, L. (2022).
+Continual learning with foundation models: An empirical study of latent replay. In Chandar, S., Pascanu,
+R., and Precup, D., editors, Proceedings of The 1st Conference on Lifelong Learning Agents, volume 199
+of Proceedings of Machine Learning Research, pages 60–91. PMLR.
+
+Petit, G., Soumm, M., Feillet, E., et al. (2024) "An analysis of initial training strategies for exemplar-free class-incremental learning." Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision.
+
+Petit, G., Popescu, A., Schindler, H., Picard, D., and Delezoide, B. (2023). Fetril: Feature translation
+for exemplar-free class-incremental learning. In Proceedings of 
+
+Prabhu, A., Torr, P. H., and Dokania, P. K. (2020). Gdumb: A simple approach that questions our progress
+in continual learning. In European Conference on Computer Vision, pages 524–540. Springer.
+
+Rebuffi, S., Kolesnikov, A., Sperl, G., and Lampert, C. H. (2017). icarl: Incremental classifier and
+representation learning. In Conference on Computer Vision and Pattern Recognition, CVPR.
+
+Ring, M. B. (1997). Child: A first step towards continual learning. Machine Learning, 28(1):77–104.
+
+Thrun, S. (1995). A lifelong learning perspective for mobile robot control. In Intelligent robots and systems,
+pages 201–214. Elsevier.
+
+van de Ven, G. M., Tuytelaars, T., and Tolias, A. S. (2022). Three types of incremental learning. Nature
+Machine Intelligence, 4(12):1185–1197.
+
+Wang, Q.-W., Zhou, D.-W., Zhang, Y.-K., Zhan, D.-C., and Ye, H.-J. (2024b). Few-shot class-incremental
+learning via training-free prototype calibration. Advances in Neural Information Processing Systems, 36.
+
+Wu, Y., Chen, Y., Wang, L., Ye, Y., Liu, Z., Guo, Y., and Fu, Y. (2019). Large scale incremental learning.
+In IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2019, Long Beach, CA, USA,
+June 16-20, 2019, pages 374–382.
+
