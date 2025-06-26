@@ -13,6 +13,10 @@ __Contents__
 4. [Incremental learning methods with a fixed encoder](#part4)
 5. [Further reading](#part5)
 
+Citation (#cite)
+
+References (#refs)
+
 ___
 
 ## 1. Preliminaries <a name="part1"></a>
@@ -339,11 +343,46 @@ python ftextract --dataset food-101 --archi vits --pretrain lvd142m
 
 __NCM__
 
+The _Nearest Mean Classifier_ (NCM) was first used in CIL by Rebuffi et aL. (2017).
+NCM only stores the average feature vector of each class encountered during the incremental learning process.  
+
+At test time, the feature vector $\phi(x)$ of an input sample $x$ is computed, and its distance to each of the average feature vectors of the classes seen so far is computed. 
+The prediction is the class whose average feature vector is closest to the feature vector of the input sample: 
+```math
+    y_{pred} = \argmax_{c \in \llbracket1, n_{1:t} \rrbracket} \; dist(\phi(x), \mu_c),
+```
+where $dist$ is for example the Euclidean distance or the cosine similarity.
+
+* Experiment with the NCM. Try different datasets, data splits, encoders. Compare the results.
+
 ```bash
 python ncm_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
 ```
 
+When applied using an encoder trained on a large-scale dataset, NCM can be a challenging baseline for CIL algorithms.
+
 __DSLDA__
+
+_Deep Streaming Linear Discriminant Analysis_ (DSLDA) by Hayes et al. (2020) applies an LDA to the case of a streaming classification problem. 
+
+It stores one average latent representation per class $`\mu_c \in \mathbb{R}^{H}`$ with an associated count $`\kappa_c \in \mathbb{R}`$ and a single shared covariance matrix $`\mathbf{\Sigma} \in \mathbb{R}^{(H, H)}`$. 
+The mean vector of each class and the class count are updated online. 
+
+For the $(k+1)-th$ sample $x_{k+1}$, with a latent representation $\phi(x_{k+1})$, and a label $y$, the new covariance matrix is computed as:
+```math
+\mathbf{\Sigma_{k+1}} = \frac{k \mathbf{\Sigma_k} + \Delta_k}{k+1}, 
+```
+where $\Delta_k$ is computed as :
+```
+    \label{eq:slda_update2}
+    \Delta_k = \frac{k (\phi(x_{k+1}) - \mu_y)(\phi(x_{k+1}) - \mu_y)^\intercal}{k+1}
+```
+
+NB : The covariance may be kept fixed after the initial step (static version) or updated online.  In the static version, the inverse of the covariance matrix can be pre-computed and stored for inference. 
+In the plastic version, the covariance matrix better reflects the most recent data distribution, but its inverse must be computed on the fly for inference, which demands more computation.
+
+At inference, the score $o_c$ associated with a class $c$ is computed as $o_c = \Lambda\mu_c + b_c$ where $\Lambda$ is the precision matrix (i.e. the inverse of the covariance matrix, computed as $\Lambda = {[(1 - \epsilon) \mathbf{\Sigma} + \epsilon \mathbb{I}]}^{−1}$, 
+and $b_c$ is the component of a bias vector $b \in \mathbb{R}^{n_{1:t}}$ which corresponds to class $c$. The bias can be updated online and is computed by: $b_c = - \frac{1}{2} (\mu_c \cdot \Lambda \mu_c)$.
 
 ```bash
 python dslda_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
@@ -351,17 +390,49 @@ python dslda_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_t
 
 __FeCAM__
 
+FeCAM (Goswami et al., 2024) uses the Mahalanobis distance, computed using class means and second-order class statistics. The authors propose two versions of their algorithm.
+Either (1) a single covariance matrix is stored and updated at each incremental step, or (2) a specific covariance matrix is computed for each class and stored for the rest of the incremental process. 
+
+In the first case, the common feature covariance matrix obtained at step $s_{t-1}$, denoted $\mathbf{\Sigma_{1:t-1}}$, is updated at step $s_t$ using the data samples from $D_t$ as follows: 
+```math
+\mathbf{\Sigma_{1:t}} = \frac{n_{1:t-1}}{n_{1:t}} \mathbf{\Sigma_{1:t-1}} + \frac{|P_t|}{n_{1:t}} \mathbf{\Sigma_{t}}
+```
+where $\mathbf{\Sigma_{t}}$ is the feature covariance matrix computed from the samples of $D_t$.
+
+The prediction for a test sample $x$ is computed by: 
+```math
+y_{pred} = \argmin_{c \in \llbracket1, n_{1:t} \rrbracket} \;(\phi(x) - \mu_c)^\intercal(\mathbf{\Sigma_{1:t}})^{-1}(\phi(x) - \mu_c)
+```
+
+See the implementation
+
 ```bash
 python fecam1_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
+```
+
+In the second case, a feature covariance matrix $\mathbf{\Sigma}^{(c)}$ is computed for each class $c$. 
+
+To ensure that Mahalanobis distances are comparable across classes, each per-class covariance matrix is normalized by dividing each of its rows (and each of its columns) element-wise by the standard deviation of this row (and of this column, respectively) so that diagonal values are all equal to $1$.
+We denote $\overline{\mathbf{\Sigma}}^{(c)}$ the normalized covariance matrix of class $c$.
+Then, the prediction for a test sample $x$ is obtained by computing the score of each class using the specific covariance matrix of this class: 
+```math
+y_{pred} = \argmin_{c \in \llbracket1, n_{1:t} \rrbracket} \; (\phi(x) - \mu_c)^\intercal(\mathbf{\overline{\mathbf{\Sigma}}^{(c)}})^{-1}(\phi(x) - \mu_c)
+```
+
+See the implementation 
+
+```bash
 python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
 ```
+
+* Compare the performance gap between the two versions of FeCAM across different data scenarios (i.e. number of training samples per class to compute the covariance matrix).
+
 
 __Further reading on classifier-incremental learning__:
 
 * latent replay (Ostapenko et al., 2022)
-* RanPAC (McDonnell et al., 2024)
 * FeTrIL (Petit et al., 2023)
-
+* RanPAC (McDonnell et al., 2024)
 
 
 ## 5. Further reading on CIL <a name="part5"></a>
@@ -411,6 +482,7 @@ rm -r cil/
 ```
 ____
 
+## Citation <a name="cite"></a>
 This tutorial (and in particular, the illustrations) is based on my thesis manuscript. Please consider citing the manuscript if you wish to reuse some of the content ! 
 
 ```
@@ -444,7 +516,7 @@ version = {0.1}
 
 ___
 
-## References
+## References <a name="refs"></a>
 
 Belouadah, E., Popescu, A., and Kanellos, I. (2021). A comprehensive study of class incremental learning
 algorithms for visual tasks. Neural Networks, 135:38–54.
