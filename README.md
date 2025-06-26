@@ -349,7 +349,7 @@ NCM only stores the average feature vector of each class encountered during the 
 At test time, the feature vector $\phi(x)$ of an input sample $x$ is computed, and its distance to each of the average feature vectors of the classes seen so far is computed. 
 The prediction is the class whose average feature vector is closest to the feature vector of the input sample: 
 ```math
-    y_{pred} = \argmax_{c \in \llbracket1, n_{1:t} \rrbracket} \; dist(\phi(x), \mu_c),
+y_{pred} = \argmax_{c \in [1, n_{1:t} ]} dist(\phi(x), \mu_c),
 ```
 where $dist$ is for example the Euclidean distance or the cosine similarity.
 
@@ -401,7 +401,7 @@ where $\mathbf{\Sigma_{t}}$ is the feature covariance matrix computed from the s
 
 The prediction for a test sample $x$ is computed by: 
 ```math
-y_{pred} = \argmin_{c \in \llbracket1, n_{1:t} \rrbracket} \;(\phi(x) - \mu_c)^\intercal(\mathbf{\Sigma_{1:t}})^{-1}(\phi(x) - \mu_c)
+y_{pred} = \argmin_{c \in [1, n_{1:t}]} (\phi(x) - \mu_c)^\intercal(\mathbf{\Sigma_{1:t}})^{-1}(\phi(x) - \mu_c)
 ```
 
 See the implementation
@@ -416,7 +416,7 @@ To ensure that Mahalanobis distances are comparable across classes, each per-cla
 We denote $\overline{\mathbf{\Sigma}}^{(c)}$ the normalized covariance matrix of class $c$.
 Then, the prediction for a test sample $x$ is obtained by computing the score of each class using the specific covariance matrix of this class: 
 ```math
-y_{pred} = \argmin_{c \in \llbracket1, n_{1:t} \rrbracket} \; (\phi(x) - \mu_c)^\intercal(\mathbf{\overline{\mathbf{\Sigma}}^{(c)}})^{-1}(\phi(x) - \mu_c)
+y_{pred} = \argmin_{c \in [1, n_{1:t} ]} \; (\phi(x) - \mu_c)^\intercal(\mathbf{\overline{\mathbf{\Sigma}}^{(c)}})^{-1}(\phi(x) - \mu_c)
 ```
 
 See the implementation 
