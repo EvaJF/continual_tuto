@@ -3,7 +3,7 @@
 Repository for PFIA 2025 - Tutorial on Continual Learning for Image Classification
 ---
 
-The aim of this tutorial is to introduce the stakes, challenges and main algorithmic approaches of continual learning through an overview and practical exercises. It focuses on the main components of the recent algorithms proposed for learning an image classification model incrementally.
+The aim of this tutorial is to introduce the stakes, challenges and main algorithmic approaches of continual learning through practical exercises. It focuses on the main components of the recent algorithms proposed for learning an image classification model incrementally.
 
 __Contents__
 
@@ -136,7 +136,7 @@ python vanilla_expe.py
 * Get familiar with the structure of the script: what has changed ?
 Compare the training loop of `vanilla_expe.py`with the training loop of `joint_expe.py`. 
 
-<u>Incremental scenario set-up: </u> Classes are introduced progressively (e.g. 2 at a time here).
+Incremental scenario set-up: Classes are introduced progressively (e.g. 2 at a time here).
 ```python
 nb_init_cl = 2
 nb_incr_cl = 2
@@ -144,17 +144,17 @@ nb_tot_cl = 10
 nb_steps = (nb_tot_cl - nb_init_cl) // nb_incr_cl
 ```
 
-<u>The classes accessible at training time and the classes accessible at test time are different: </u> 
+The classes accessible at training time and the classes accessible at test time are different:  
 ```python
 train_cl = range(nb_init_cl + nb_incr_cl * (step - 1), nb_curr_cl)
 test_cl = range(nb_curr_cl)
 ```
 
-<u>Classification layer: </u> In joint training, the classifier has a fixed output dimension (10 classes).
+Classification layer: In joint training, the classifier has a fixed output dimension (10 classes).
 In fine-tuning, the output layer is expanded at each step via `update_fc`, preserving weights of existing classes and appending  weights for the new classes.
 At each step, the model is tested on all classes seen so far.
 
-<u>Performance evaluation:</u> We can use the final accuracy to compare with joint training. 
+Performance evaluation: We can use the final accuracy to compare with joint training. 
 We can also compare different incremental learning algorithms based on two complementary indicators, namely average incremental accuracy and average forgetting.
 
 * Run the script and compare the final test accuracy with the one obtained previously with the joint training strategy. Look at the confusion matrices. What happened ?
@@ -222,7 +222,7 @@ In this part of the tutorial, we focus on fine-tuning-based CIL methods, i.e. me
 
 __Replay / Usage of a memory buffer__
 
-Some CIL methods assume the availability of a fixed-size memory buffer, which stores a small subset of past training samples (Rebuffi et al., 2017b).
+Some CIL methods assume the availability of a fixed-size memory buffer, which stores a small subset of past training samples (Rebuffi et al., 2017).
 In this line of work, at any incremental step $s_i$​ with $i>1$, the training dataset is constructed as
 $$D_i \cup B_{1:i−1}$$ 
 where $D_i$​ is the current batch of data and $B_{1:i−1} ⊆ D_1 \cup D_2 \cup ... D_{i-1}$​ represents the buffer content. 
@@ -238,13 +238,13 @@ The buffer is used to mitigate forgetting by enabling the model to rehearse on r
 python replay_expe.py
 ```
 
-* <u>Memory size</u> Vary the number of samples in the replay buffer. How does it impact performance ?
+* Memory size Vary the number of samples in the replay buffer. How does it impact performance ?
 
 ```python
 # replay strategy
 max_size = 200  # try 800, 2000
 ```
-* <u>Sampling strategy</u> Comment on the sampling strategy. How could it be improved ? Implement a different sampling strategy. 
+* Sampling strategy: Comment on the sampling strategy. How could it be improved ? Implement a different sampling strategy. 
 
 __Further reading on replay strategies__:
 _Herding_ in iCaRL (Rebuffi et al. 2017);
@@ -258,7 +258,7 @@ Latent replay;
 Generative replay;
 Past examples can be used for knowledge distillation (see next subsection).
 
-* <u>Dealing with class imbalance:</u> Replace the loss function with a weighted version. Is it effective ? What other strategies could you implement to deal with class imbalance ?
+* Dealing with class imbalance: Replace the loss function with a weighted version. Is it effective ? What other strategies could you implement to deal with class imbalance ?
 
 ```python
 CE_weights = [ 1-train_count_dict[k]/len(train_loader.dataset) for k in range(nb_curr_cl)]
@@ -281,7 +281,7 @@ The parameters of the teacher model are kept fixed, while the parameters of the 
 For an input image $x$, let $z \in [0,1]^n$ and $z' \in [0,1]^n$ be the vectors corresponding to the scores computed after softmax by the teacher and student models, respectively. 
 The loss function of the student model includes a term $\mathcal{L}_{KD}$ that penalizes a discrepancy between the output of the student model and the output of the teacher model. 
 
-_Learning without forgetting_ (Li and Hoeim, 2017) was the first method to implement knowledge distillation in the case of incremental learning. 
+_Learning without forgetting_ (Li and Hoeim, 2016) was the first method to implement knowledge distillation in the case of incremental learning. 
 At a given step $s_t$, for a given input sample $x \in D_t$, the knowledge distillation loss is used in combination with the classification loss to constrain the output of the current model to stay close to the output of the previous model. 
 The teacher model is the previous model $\mathcal{M}_{t-1}$ obtained at step $s_{t-1}$ and the student model is the current model $\mathcal{M}_t$.
 
@@ -298,8 +298,8 @@ __TODO add regularisation and check how CE is computed to comply with LwF paper 
 
 
 __Further reading on knowledge distillation in CIL__:
-- KD on image embeddings (LUCIR by Hu et al., 2019, BSIL by Jodelet et al., 2022)
-- KD on intermediary representations (PODNet)
+- KD on image embeddings (LUCIR by Hou et al., 2019, BSIL by Jodelet et al., 2022)
+- KD on intermediary representations (PODNet by Douillard et al., 2020)
 
 * Implement a variation of the knowledge distillation loss.
 Implementation hint: see the cosine embedding loss [here](https://docs.pytorch.org/docs/stable/generated/torch.nn.CosineEmbeddingLoss.html)
@@ -366,21 +366,32 @@ __Further reading on classifier-incremental learning__:
 
 ## 5. Further reading on CIL <a name="part5"></a>
 
-__Impact of the scenario__ 
-Belouadah, Feillet
+__Impact of the incremental learning scenario__ 
+On the impact of the incremental learning scenario (model architecture, number of classes per step, number of incremental updates etc.) see the survey of Belouadah et al. (2021) and the recommendation method of Feillet et al. (2023).
 
 __Impact of pre-training on incremental learning performance__
-Petit, 
-Feillet
+See the study of Petit et al. (2024), and of  
+Feillet et al. (2025).
 
-__Prompt-based methods__ A recent line of work proposes to dynamically prompt a pretrained transformer network to learn a growing number of classes. See [Wang
-et al., 2022c,d; Smith et al., 2023a; Jung et al., 2023]. 
+__Prompt-based methods__ A recent line of work proposes to dynamically prompt a pretrained transformer network to learn a growing number of classes. See for example the methods proposed by Wang et al. (2022) or Smith et al. (2023). 
 
 __Surveys__
-Masana, De Lange, Belouadah, van de Ven. , Dagstuhl
+
+See the surveys of Verwimp et al. 2024,
+Masana et al. 2022, 
+De Lange et al. 2021, 
+Belouadah et al. 2021, 
+van de Ven et al. 2022.
 
 __Useful repositories__
-PyCIL, Awasome continual learning
+
+[PyCIL](https://github.com/LAMDA-CL/PyCIL) 
+
+[Avalanche](https://github.com/ContinualAI/avalanche)
+
+[Awesome continual learning](https://github.com/feifeiobama/Awesome-Continual-Learning)
+
+[Awesome incremental learning](https://github.com/xialeiliu/Awesome-Incremental-Learning)
 
 ____
 
@@ -400,7 +411,7 @@ rm -r cil/
 ```
 ____
 
-This tutorial (in particular, the illustrations) is based on my thesis manuscript. Please consider citing the manuscript if you wish to reuse some of the content ! 
+This tutorial (and in particular, the illustrations) is based on my thesis manuscript. Please consider citing the manuscript if you wish to reuse some of the content ! 
 
 ```
 @phdthesis{feillet:tel-05062088,
@@ -435,8 +446,6 @@ ___
 
 ## References
 
-To add OR directly add links in the text
-
 Belouadah, E., Popescu, A., and Kanellos, I. (2021). A comprehensive study of class incremental learning
 algorithms for visual tasks. Neural Networks, 135:38–54.
 
@@ -454,6 +463,10 @@ Douillard, A., Cord, M., Ollion, C., Robert, T., and Valle, E. (2020). Podnet: P
 small-tasks incremental learning. In Computer vision-ECCV 2020-16th European conference, Glasgow,
 UK, August 23-28, 2020, Proceedings, Part XX, volume 12365, pages 86–102. Springer.
 
+Feillet, E., Petit, G., Popescu, A., Reyboz, M., and Hudelot, C. (2023). Advisil - a class-incremental
+learning advisor. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer
+Vision, pages 2400–2409.
+
 Feillet, Eva, Adrian Popescu, and Céline Hudelot. "A Reality Check on Pre-training for Exemplar-free Class-Incremental Learning." 2025 IEEE/CVF Winter Conference on Applications of Computer Vision (WACV). IEEE, 2025.
 
 French, R. M. (1999). Catastrophic forgetting in connectionist networks. Trends in cognitive sciences,
@@ -470,6 +483,10 @@ Workshops, pages 220–221.
 Hinton, G. E., Vinyals, O., and Dean, J. (2015). Distilling the knowledge in a neural network. CoRR,
 abs/1503.02531.
 
+Hou, S., Pan, X., Loy, C. C., Wang, Z., and Lin, D. (2019). Learning a unified classifier incrementally
+via rebalancing. In IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2019, Long
+Beach, CA, USA, June 16-20, 2019, pages 831–839.
+
 Jodelet, Q., Liu, X., and Murata, T. (2022). Balanced softmax cross-entropy for incremental learning with
 and without memory. Computer Vision and Image Understanding, 225:103582.
 
@@ -480,6 +497,9 @@ networks. Proceedings of the national academy of sciences, 114(13):3521–3526.
 Lange, M. D., Aljundi, R., Masana, M., Parisot, S., Jia, X., Leonardis, A., Slabaugh, G. G., and Tuytelaars,
 T. (2019). Continual learning: A comparative study on how to defy forgetting in classification tasks.
 CoRR, abs/1909.08383.
+
+Li, Z. and Hoiem, D. (2016). Learning without forgetting. In European Conference on Computer Vision,
+ECCV.
 
 Masana, M., Liu, X., Twardowski, B., Menta, M., Bagdanov, A. D., and Van De Weijer, J. (2022).
 Class-incremental learning: survey and performance evaluation on image classification. IEEE TPAMI,
@@ -514,14 +534,25 @@ representation learning. In Conference on Computer Vision and Pattern Recognitio
 
 Ring, M. B. (1997). Child: A first step towards continual learning. Machine Learning, 28(1):77–104.
 
+Smith, J. S., Karlinsky, L., Gutta, V., Cascante-Bonilla, P., Kim, D., Arbelle, A., Panda, R., Feris, R., and
+Kira, Z. (2023a). Coda-prompt: Continual decomposed attention-based prompting for rehearsal-free
+continual learning. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern
+Recognition, pages 11909–11919.
+
 Thrun, S. (1995). A lifelong learning perspective for mobile robot control. In Intelligent robots and systems,
 pages 201–214. Elsevier.
 
 van de Ven, G. M., Tuytelaars, T., and Tolias, A. S. (2022). Three types of incremental learning. Nature
 Machine Intelligence, 4(12):1185–1197.
 
-Wang, Q.-W., Zhou, D.-W., Zhang, Y.-K., Zhan, D.-C., and Ye, H.-J. (2024b). Few-shot class-incremental
+Verwimp, Eli, et al. "Continual Learning: Applications and the Road Forward." Transactions on Machine Learning Research (2024).
+
+Wang, Q.-W., Zhou, D.-W., Zhang, Y.-K., Zhan, D.-C., and Ye, H.-J. (2024). Few-shot class-incremental
 learning via training-free prototype calibration. Advances in Neural Information Processing Systems, 36.
+
+Wang, Z., Zhang, Z., Lee, C.-Y., Zhang, H., Sun, R., Ren, X., Su, G., Perot, V., Dy, J., and Pfister, T.
+(2022). Learning to prompt for continual learning. In Proceedings of the IEEE/CVF Conference on
+Computer Vision and Pattern Recognition, pages 139–149.
 
 Wu, Y., Chen, Y., Wang, L., Ye, Y., Liu, Z., Guo, Y., and Fu, Y. (2019). Large scale incremental learning.
 In IEEE Conference on Computer Vision and Pattern Recognition, CVPR 2019, Long Beach, CA, USA,
