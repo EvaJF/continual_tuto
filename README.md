@@ -381,7 +381,7 @@ where $\Delta_k$ is computed as :
 NB : The covariance may be kept fixed after the initial step (static version) or updated online.  In the static version, the inverse of the covariance matrix can be pre-computed and stored for inference. 
 In the plastic version, the covariance matrix better reflects the most recent data distribution, but its inverse must be computed on the fly for inference, which demands more computation.
 
-At inference, the score $o_c$ associated with a class $c$ is computed as $o_c = \Lambda\mu_c + b_c$ where $\Lambda$ is the precision matrix (i.e. the inverse of the covariance matrix, computed as $\Lambda = {[(1 - \epsilon) \mathbf{\Sigma} + \epsilon \mathbb{I}]}^{−1}$, 
+At inference, the score $o_c$ associated with a class $c$ is computed as $o_c = \Lambda\mu_c + b_c$ where $\Lambda$ is the precision matrix (i.e. the inverse of the covariance matrix, computed as $\Lambda = {[(1 - \epsilon) \mathbf{\Sigma} + \epsilon \mathbb{I}]}^{−1}$), 
 and $b_c$ is the component of a bias vector $b \in \mathbb{R}^{n_{1:t}}$ which corresponds to class $c$. The bias can be updated online and is computed by: $b_c = - \frac{1}{2} (\mu_c \cdot \Lambda \mu_c)$.
 
 ```bash
@@ -393,7 +393,7 @@ __FeCAM__
 FeCAM (Goswami et al., 2024) uses the Mahalanobis distance, computed using class means and second-order class statistics. The authors propose two versions of their algorithm.
 Either (1) a single covariance matrix is stored and updated at each incremental step, or (2) a specific covariance matrix is computed for each class and stored for the rest of the incremental process. 
 
-In the first case, the common feature covariance matrix obtained at step $s_{t-1}$, denoted $\mathbf{\Sigma_{1:t-1}}$, is updated at step $s_t$ using the data samples from $D_t$ as follows: 
+* In the first case, the common feature covariance matrix obtained at step $s_{t-1}$, denoted $\mathbf{\Sigma_{1:t-1}}$, is updated at step $s_t$ using the data samples from $D_t$ as follows: 
 ```math
 \mathbf{\Sigma_{1:t}} = \frac{n_{1:t-1}}{n_{1:t}} \mathbf{\Sigma_{1:t-1}} + \frac{|P_t|}{n_{1:t}} \mathbf{\Sigma_{t}}
 ```
@@ -404,11 +404,7 @@ The prediction for a test sample $x$ is computed by:
 y_{pred} = argmin_{c \in [1, n_{1:t}]} (\phi(x) - \mu_c)^\intercal(\mathbf{\Sigma_{1:t}})^{-1}(\phi(x) - \mu_c)
 ```
 
-See the implementation
-
-```bash
-python fecam1_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
-```
+> See the implementation `fecam1_expe.py`
 
 In the second case, a feature covariance matrix $\mathbf{\Sigma}^{(c)}$ is computed for each class $c$. 
 
@@ -416,17 +412,18 @@ To ensure that Mahalanobis distances are comparable across classes, each per-cla
 We denote $\overline{\mathbf{\Sigma}}^{(c)}$ the normalized covariance matrix of class $c$.
 Then, the prediction for a test sample $x$ is obtained by computing the score of each class using the specific covariance matrix of this class: 
 ```math
-y_{pred} = \argmin_{c \in [1, n_{1:t} ]} \; (\phi(x) - \mu_c)^\intercal(\mathbf{\overline{\mathbf{\Sigma}}^{(c)}})^{-1}(\phi(x) - \mu_c)
+y_{pred} = argmin_{c \in [1, n_{1:t} ]} \; (\phi(x) - \mu_c)^\intercal(\mathbf{\overline{\mathbf{\Sigma}}^{(c)}})^{-1}(\phi(x) - \mu_c)
 ```
 
-See the implementation 
-
-```bash
-python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
-```
+> See the implementation fecamN_expe.py
 
 * Compare the performance gap between the two versions of FeCAM across different data scenarios (i.e. number of training samples per class to compute the covariance matrix).
 
+```bash
+python fecam1_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
+
+python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
+```
 
 __Further reading on classifier-incremental learning__:
 
