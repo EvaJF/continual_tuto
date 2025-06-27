@@ -403,7 +403,7 @@ The prediction for a test sample $x$ is computed by:
 y_{pred} = argmin_{c \in [1, n_{1:t}]} (\phi(x) - \mu_c)^\intercal(\mathbf{\Sigma_{1:t}})^{-1}(\phi(x) - \mu_c)
 ```
 
-> See the implementation `fecam1_expe.py`
+> See the implementation in `fecam1_expe.py`.
 
 In the second case, a feature covariance matrix $\mathbf{\Sigma}^{(c)}$ is computed for each class $c$. 
 
@@ -414,7 +414,7 @@ Then, the prediction for a test sample $x$ is obtained by computing the score of
 y_{pred} = argmin_{c \in [1, n_{1:t} ]} \; (\phi(x) - \mu_c)^\intercal(\mathbf{\overline{\mathbf{\Sigma}}^{(c)}})^{-1}(\phi(x) - \mu_c)
 ```
 
-> See the implementation fecamN_expe.py
+> See the implementation in `fecamN_expe.py`.
 
 * Compare the performance gap between the two versions of FeCAM across different data scenarios (i.e. number of training samples per class to compute the covariance matrix).
 
@@ -435,12 +435,12 @@ __Further reading on classifier-incremental learning__:
 ## 5. Further reading on CIL <a name="part5"></a>
 
 __Impact of the incremental learning scenario__ 
+
 On the impact of the incremental learning scenario (model architecture, number of classes per step, number of incremental updates etc.) see the survey of Belouadah et al. (2021) and the recommendation method of Feillet et al. (2023).
 
 __Impact of pre-training on incremental learning performance__
 
-See the study of Petit et al. (2024), and of  
-Feillet et al. (2025).
+See the study of Petit et al. (2024), and of Feillet et al. (2025).
 
 __Prompt-based methods__ 
 
