@@ -11,7 +11,7 @@ __Contents__
 2. [The incremental learning framework](#part2)
 3. [Fine-tuning-based incremental learning methods](#part3)
 4. [Incremental learning methods with a fixed encoder](#part4)
-5. [Further reading](#part5)
+5. [Further reading on CIL](#part5)
 
 [Citation](#cite)
 
@@ -222,7 +222,7 @@ ___
 
 ## 3. Fine-tuning-based incremental learning methods <a name="part3"></a>
 
-In this part of the tutorial, we focus on fine-tuning-based CIL methods, i.e. mehtods that update the encoder as well as the classifier.
+In this part of the tutorial, we focus on fine-tuning-based CIL methods, i.e. methods that update the encoder as well as the classifier.
 
 __Replay / Usage of a memory buffer__
 
@@ -242,7 +242,7 @@ The buffer is used to mitigate forgetting by enabling the model to rehearse on r
 python replay_expe.py
 ```
 
-* Memory size Vary the number of samples in the replay buffer. How does it impact performance ?
+* Memory size: Vary the number of samples in the replay buffer. How does it impact performance ?
 
 ```python
 # replay strategy
@@ -373,9 +373,8 @@ For the $(k+1)-th$ sample $x_{k+1}$, with a latent representation $\phi(x_{k+1})
 \mathbf{\Sigma_{k+1}} = \frac{k \mathbf{\Sigma_k} + \Delta_k}{k+1}, 
 ```
 where $\Delta_k$ is computed as :
-```
-    \label{eq:slda_update2}
-    \Delta_k = \frac{k (\phi(x_{k+1}) - \mu_y)(\phi(x_{k+1}) - \mu_y)^\intercal}{k+1}
+```math
+\Delta_k = \frac{k (\phi(x_{k+1}) - \mu_y)(\phi(x_{k+1}) - \mu_y)^\intercal}{k+1}
 ```
 
 NB : The covariance may be kept fixed after the initial step (static version) or updated online.  In the static version, the inverse of the covariance matrix can be pre-computed and stored for inference. 
@@ -421,10 +420,11 @@ y_{pred} = argmin_{c \in [1, n_{1:t} ]} \; (\phi(x) - \mu_c)^\intercal(\mathbf{\
 
 ```bash
 python fecam1_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
-
-python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
 ```
 
+```bash
+python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
+```
 __Further reading on classifier-incremental learning__:
 
 * latent replay (Ostapenko et al., 2022)
@@ -438,10 +438,13 @@ __Impact of the incremental learning scenario__
 On the impact of the incremental learning scenario (model architecture, number of classes per step, number of incremental updates etc.) see the survey of Belouadah et al. (2021) and the recommendation method of Feillet et al. (2023).
 
 __Impact of pre-training on incremental learning performance__
+
 See the study of Petit et al. (2024), and of  
 Feillet et al. (2025).
 
-__Prompt-based methods__ A recent line of work proposes to dynamically prompt a pretrained transformer network to learn a growing number of classes. See for example the methods proposed by Wang et al. (2022) or Smith et al. (2023). 
+__Prompt-based methods__ 
+
+A recent line of work proposes to dynamically prompt a pretrained transformer network to learn a growing number of classes. See for example the methods proposed by Wang et al. (2022) or Smith et al. (2023). 
 
 __Surveys__
 
@@ -453,13 +456,11 @@ van de Ven et al. 2022.
 
 __Useful repositories__
 
-[PyCIL](https://github.com/LAMDA-CL/PyCIL) 
-
+Code: [PyCIL](https://github.com/LAMDA-CL/PyCIL),
 [Avalanche](https://github.com/ContinualAI/avalanche)
 
-[Awesome continual learning](https://github.com/feifeiobama/Awesome-Continual-Learning)
-
-[Awesome incremental learning](https://github.com/xialeiliu/Awesome-Incremental-Learning)
+Papers: [Awesome continual learning](https://github.com/feifeiobama/Awesome-Continual-Learning),
+[Awesome incremental learning](https://github.com/xialeiliu/Awesome-Incremental-Learning).
 
 ____
 
