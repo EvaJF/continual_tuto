@@ -94,7 +94,7 @@ for step in range(nb_steps+1) :
     if step > 0 : 
         EPOCHS = 4
         lr = 0.01
-    optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum) 
+    optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=momentum, weight_decay=1e-5) 
     if CE_type == "classic" : 
         loss_fn = nn.CrossEntropyLoss()
     elif CE_type == "balanced" : # handle the case without memory
@@ -108,7 +108,7 @@ for step in range(nb_steps+1) :
 
     # coefficient for weighting the loss terms
     if step > 0 and KD_type != "None":
-        mu_CE = 0.5  #nb_incr_cl/nb_curr_cl  TODO try other strategies, e.g. 
+        mu_CE = 0.5  # TODO try other strategies, e.g. nb_incr_cl/nb_curr_cl 
         print("Coefficient for CE loss {:.2f} and KD loss {:.2f}".format(mu_CE, 1-mu_CE))
 
     # training loop (train/val)
@@ -128,9 +128,9 @@ for step in range(nb_steps+1) :
                 KD_loss = torch.tensor(0)
                 loss = CE_loss
             else :   
-                CE_loss = loss_fn(out, target)
-                # update the classifier weights of the new classes using CE
-                #CE_loss = loss_fn(out[:, -nb_incr_cl:], target) 
+                #CE_loss = loss_fn(out, target)
+                # alternative : LwF style -> update the classifier weights of the new classes only, using CE
+                CE_loss = loss_fn(out[:, -nb_incr_cl:], target) 
                 # KD loss on old classes
                 with torch.no_grad() :
                     ref_logits = ref_model(x) # teacher logits

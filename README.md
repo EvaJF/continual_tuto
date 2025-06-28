@@ -297,10 +297,6 @@ The teacher model is the previous model $\mathcal{M}_{t-1}$ obtained at step $s_
 python distillation_expe.py
 ```
 
-Currently using [KL div](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.kl_div.html) ?? TODO check LwF paper It was L2
-__TODO add regularisation and check how CE is computed to comply with LwF paper !!__
-
-
 __Further reading on knowledge distillation in CIL__:
 - KD on image embeddings (LUCIR by Hou et al., 2019, BSIL by Jodelet et al., 2022)
 - KD on intermediary representations (PODNet by Douillard et al., 2020)
