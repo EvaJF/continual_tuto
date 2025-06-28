@@ -1,8 +1,6 @@
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.ticker import PercentFormatter
 from torch.utils.data import Dataset
 import shutil
 from PIL import Image
@@ -12,6 +10,7 @@ import torch
 from torchvision.datasets import MNIST
 from sklearn.model_selection import train_test_split
 from torchvision import transforms
+from torchvision import datasets
 
 
 class incrMNIST(MNIST):
@@ -182,7 +181,7 @@ def class_count_dict(targets: torch.Tensor) -> dict:
     """
     Returns a dictionary {label: count} for the given targets tensor.
     """
-    cc_dict = {k : 0 for k in range(torch.max(targets).item())}
+    cc_dict = {k: 0 for k in range(torch.max(targets).item())}
     labels, counts = torch.unique(targets, return_counts=True)
     cc_dict.update({label.item(): count.item() for label, count in zip(labels, counts)})
     return cc_dict
@@ -372,6 +371,67 @@ def get_MNIST_loaders_with_memory(
     print("Nb testing batches : {}".format(len(test_loader)))
 
     return train_loader, val_loader, test_loader
+
+
+def get_dataset(dataset, data_transforms, val_size=0.1):
+    if dataset == "mnist":
+        dataset_train = datasets.MNIST(
+            "./data", train=True, transform=data_transforms, download=True
+        )
+        dataset_test = datasets.MNIST(
+            "./data", train=False, transform=data_transforms, download=True
+        )
+        # custom validation set
+        dataset_val = datasets.MNIST(
+            "./data", train=True, transform=data_transforms, download=False
+        )
+        index_list = [k for k in range(len(dataset_train))]
+        train_index, val_index = train_test_split(index_list, test_size=val_size)
+
+        dataset_train.data = dataset_train.data[train_index]
+        dataset_train.targets = dataset_train.targets[train_index]
+        dataset_val.data = dataset_val.data[val_index]
+        dataset_val.targets = dataset_val.targets[val_index]
+
+    elif dataset == "food-101":
+        dataset_train = datasets.Food101(
+            root="data", split="train", download=True, transform=data_transforms
+        )
+
+        dataset_val = datasets.Food101(
+            root="data", split="train", download=False, transform=data_transforms
+        )
+
+        dataset_test = datasets.Food101(
+            root="data", split="test", download=True, transform=data_transforms
+        )
+        # print(dataset_train.__dir__())
+
+        # custom validation dataset
+        samples_train, samples_val = train_test_split(
+            dataset_train._image_files, test_size=val_size
+        )
+        dataset_train._image_files = samples_train
+        dataset_val._image_files = samples_val
+
+    elif dataset == "flowers-102":
+        dataset_train = datasets.Flowers102(
+            root="data", split="train", download=True, transform=data_transforms
+        )
+
+        dataset_val = datasets.Flowers102(
+            root="data", split="val", download=True, transform=data_transforms
+        )
+
+        dataset_test = datasets.Flowers102(
+            root="data", split="test", download=True, transform=data_transforms
+        )
+
+    else:
+        raise NotImplementedError(
+            "This dataset name doesn't seem to be supported. Implement a custom Dataset."
+        )
+    return dataset_train, dataset_val, dataset_test
 
 
 class ImageDataset(Dataset):
