@@ -24,9 +24,8 @@ def main():
     print(my_net)
     
     # dataset
-    dataset = args.dataset
     print('\nPreparing dataset...')
-    dataset_train, dataset_val, dataset_test = get_dataset(dataset, data_transforms)
+    dataset_train, dataset_val, dataset_test = get_dataset(args.dataset, data_transforms)
 
     # datasets and loaders from train / val / test image lists
     print("Nb of train images : %i" % len(dataset_train))
@@ -48,16 +47,16 @@ def main():
     # Feature extraction
     print("\nFeature extraction...")
     encode_features(
-        my_net, loader_train, save_dir=f"data/features/{dataset}/train", device=device
+        my_net, loader_train, save_dir=f"data/features/{args.dataset}/{args.archi}/{args.pretrain}/train", device=device
     )
     print("Completed feature extraction for Train images\n")
     encode_features(
-        my_net, loader_test, save_dir=f"data/features/{dataset}/test", device=device
+        my_net, loader_test, save_dir=f"data/features/{args.dataset}/{args.archi}/{args.pretrain}/test", device=device
     )
     print("Completed feature extraction for Test images\n")
     #if valid : 
     encode_features(
-        my_net, loader_val, save_dir=f"data/features/{dataset}/valid", device=device
+        my_net, loader_val, save_dir=f"data/features/{args.dataset}/{args.archi}/{args.pretrain}/valid", device=device
     )
     print("Completed feature extraction for Valid images\n")
 

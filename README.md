@@ -325,19 +325,22 @@ __Get the data__
 
 In this part of the tutorial, we assume the encoder to be fixed. Hence, for a given image, no need to compute the forward pass of the encoder multiple times. We compute it once and store it for reuse. 
 
-*Option 1 : Use pre-computed image features*. Download pre-computed features following these steps. These features are obtained using a ResNet18 network pre-trained on ImageNet-1k.
+> Continuing with our example of training a model incrementally to recognize MNIST classes two by two, let's reuse the first checkpoint obtained with the vanilla fine-tuning experiment.
+This a model was trained on classes 0 and 1.
 
+In `ftextract.py`, we load a model, keep its weights fixed and remove the classification layer. We compute the image features for the entire dataset. Image features are stored under `features/<dataset_name>`.
+
+```bash
+python ftextract.py --dataset mnist --archi simpleCNN --pretrain none
 ```
-wget LINK TO ADD features.tar.gz
-tar -xf features.tar.gz
-tree -L 2 features
-```
 
-*Option 2 : Choose your own dataset and/or encoder.*
+Alternatively, you can choose your own dataset and/or encoder to experiment with more challenging classification tasks.  
 
-We provide a script for extracting features with a choice of dataset, model architecture and pre-training dataset, e.g. the following command will compute image representations for the images of Food-101 using a ViT-Small network pre-trained on the LVD-142m dataset.
+> You cas run the script `ftextract.py` for extracting features with a choice of dataset, model architecture and pre-training dataset.
 
-```
+Example: The following command will compute image representations for the images of Food-101 using a ViT-Small network pre-trained on the LVD-142m dataset.
+
+```bash
 python ftextract.py --dataset food-101 --archi vits --pretrain lvd142m
 ```
 
