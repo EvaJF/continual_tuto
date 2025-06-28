@@ -98,8 +98,14 @@ class myCNN_features(nn.Module):
 
 
 def get_encoder(archi, pretrain):
-
-    if archi == "resnet18":  # use torch
+    if archi == "simpleCNN" : # mnist only
+        trf = transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
+        )
+        model = myCNN(nb_tot_cl=2, size_conv_1=8, size_conv_2=16, size_fc=256)
+        ckp_path = './ckp/mnist_vanilla_incr_step0_best.pt' # load vanilla checkpoint trained on classes 0 and 1
+        model.load_state_dict(torch.load(ckp_path, weights_only=True))
+    elif archi == "resnet18":  # use torch
         if pretrain == "in1k":  # IMAGENET1K_V1
             weights = ResNet18_Weights.IMAGENET1K_V1
             model = resnet18(weights=weights)
