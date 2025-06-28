@@ -534,8 +534,8 @@ def read_features_as_array(path, n):
     return X_features, true_labels
 
 
-def untie_features(n, train_features_path, val_features_path):
-    for dir in [train_features_path, val_features_path]:
+def untie_features(n, train_features_path, val_features_path, test_features_path):
+    for dir in [train_features_path, val_features_path, test_features_path]:
         file_path = os.path.join(dir, str(n))
         if os.path.exists(file_path):
             try:
@@ -552,8 +552,8 @@ def untie_features(n, train_features_path, val_features_path):
     return None
 
 
-def clean_features(n, train_features_path, val_features_path):
-    for dir in [train_features_path, val_features_path]:
+def clean_features(n, train_features_path, val_features_path, test_features_path):
+    for dir in [train_features_path, val_features_path, test_features_path]:
         file_path = os.path.join(dir, str(n))
         if os.path.exists(file_path):
             try:
