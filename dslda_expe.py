@@ -53,6 +53,7 @@ if __name__ == "__main__":
     print("batch_size", batch_size)
     # feature path
     train_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "train")
+    val_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "valid")
     test_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "test")
     print("train_dir", train_dir)
     print("test_dir", test_dir)
@@ -97,7 +98,7 @@ if __name__ == "__main__":
         f"{log_dir}/b{nb_init_cl}/t{n_tasks}/slda_matconfusion.npy"
     ):
         decompose_fn = partial(
-            untie_features, train_features_path=train_dir, val_features_path=test_dir
+            untie_features, train_features_path=train_dir, val_features_path=val_dir, test_features_path=test_dir
         )
         print("\nStarting decomposition...")
         start = time()
@@ -382,7 +383,7 @@ if __name__ == "__main__":
         print("Not yet computed")
 
     clean_fn = partial(
-        clean_features, train_features_path=train_dir, val_features_path=test_dir
+        clean_features, train_features_path=train_dir, val_features_path=val_dir, test_features_path=test_dir
     )
     with Pool(8) as p:
         p.map(clean_fn, range(nb_tot_cl))
