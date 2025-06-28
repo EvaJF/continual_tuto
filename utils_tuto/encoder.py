@@ -150,6 +150,20 @@ def get_encoder(archi, pretrain):
 
     return model, trf
 
+def get_feature_size(feature_extractor):
+    if feature_extractor == "resnet18":
+        feature_size = 512
+    elif feature_extractor == "resnet50":
+        feature_size = 2048
+    elif (
+        "vits" in feature_extractor or feature_extractor == "dinov2"
+    ):  # by default, dinov2 --> dinov2-vits-imagenet2012
+        feature_size = 384
+    else:  # ViT base
+        feature_size = 768
+    print("feature size :", feature_size)
+
+    return feature_size
 
 def encode_features(encoder, loader, save_dir, device):
     os.makedirs(save_dir, exist_ok=True)
