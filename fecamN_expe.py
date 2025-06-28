@@ -12,7 +12,7 @@ from utils_tuto.parser import parse_args
 
 
 # Example usage
-# python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
+# python fecamN_expe.py --dataset flowers-102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi resnet18 --pretrain in1k
 
 
 ### Utility functions ###
@@ -81,8 +81,8 @@ def main():
     batch_size = 32  # TODO augment batch size ?bigmem
     print("batch_size", batch_size)
     # feature path
-    train_dir = os.path.join(features_dir, dataset, "train")
-    test_dir = os.path.join(features_dir, dataset, "test")
+    train_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "train")
+    test_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "test")
     print("train_dir", train_dir)
     print("test_dir", test_dir)
     # TODO fix scratch

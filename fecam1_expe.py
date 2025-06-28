@@ -6,15 +6,14 @@ from multiprocessing import Pool
 from tqdm import tqdm
 from time import time
 from functools import partial
-
+import sys
 from utils_tuto.dataset import FeaturesDataset, untie_features, clean_features
 from utils_tuto.parser import parse_args
 
 # Example usage
-# python fecam1_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
+# python fecam1_expe.py --dataset flowers-102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi vits --pretrain lvd142m
 
 ### Utility functions ###
-
 
 def tukeys_transform(x, beta=0.5):
     x = torch.relu(x)
@@ -72,8 +71,8 @@ def main():
     batch_size = 32  # TODO augment batch size ?bigmem
     print("batch_size", batch_size)
     # feature path
-    train_dir = os.path.join(features_dir, dataset, "train")
-    test_dir = os.path.join(features_dir, dataset, "test")
+    train_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "train")
+    test_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "test")
     print("train_dir", train_dir)
     print("test_dir", test_dir)
     # TODO fix scratch
@@ -256,3 +255,4 @@ top1 = {avg_incr_acc_u} | top1 without first batch = {round(np.mean(accuracy_his
 
 if __name__ == "__main__":
     main()
+    sys.exit(0)

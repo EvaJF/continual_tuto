@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from functools import partial
 from time import time 
-
+import sys 
 from methods.slda import (
     StreamingLDA,
     compute_accuracies,
@@ -20,7 +20,7 @@ from methods.slda import (
 from utils_tuto.dataset import FeaturesDataset, untie_features, clean_features
 from utils_tuto.parser import parse_args
 
-# python dslda_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --proj_dim 10000
+# python dslda_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi vits --pretrain lvd142m
 
 if __name__ == "__main__":
 
@@ -48,12 +48,12 @@ if __name__ == "__main__":
 
     # paths
     features_dir = args.features_dir
-    log_dir = os.path.join(args.log_dir, args.archi, f"proj_{args.proj_dim}")
-    batch_size = 32  # TODO augment batch size ?bigmem
+    log_dir = os.path.join(args.log_dir, args.archi)
+    batch_size = 32  # TODO augment batch size if possible
     print("batch_size", batch_size)
     # feature path
-    train_dir = os.path.join(features_dir, dataset, "train", f"proj_{args.proj_dim}")
-    test_dir = os.path.join(features_dir, dataset, "test", f"proj_{args.proj_dim}")
+    train_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "train")
+    test_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "test")
     print("train_dir", train_dir)
     print("test_dir", test_dir)
 
@@ -71,7 +71,9 @@ if __name__ == "__main__":
             feature_size = 2048
         elif "vits-" in pretrained_net or "dino" in pretrained_net:
             feature_size = 384
-        else:  # default
+        elif pretrained_net == "simpleCNN":
+            feature_size = 256
+        else:
             raise NotImplementedError("Please provide a valid encoder name")
 
     print("pretrained_net", pretrained_net)
@@ -386,3 +388,4 @@ if __name__ == "__main__":
         p.map(clean_fn, range(nb_tot_cl))
 
     print("Done cleaning")
+    sys.exit(0)
