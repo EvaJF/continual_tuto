@@ -321,7 +321,7 @@ ___
 
 In this section of the tutorial, we focus on incremental learning methods that use a fixed encoder, i.e. only the parameters of the classifier are updated. This line of work is also known as _classifier-incremental learning_. 
 
-__Get the data__
+__Feature extraction__
 
 In this part of the tutorial, we assume the encoder to be fixed. Hence, for a given image, no need to compute the forward pass of the encoder multiple times. We compute it once and store it for reuse. 
 
@@ -344,6 +344,9 @@ Example: The following command will compute image representations for the images
 python ftextract.py --dataset food-101 --archi vits --pretrain lvd142m
 ```
 
+> To avoid compute, we also provide pre-computed features for [download](wget https://drive.proton.me/urls/WRH7BQHK10#vVqDxTLgwggi).
+
+
 __NCM__
 
 The _Nearest Mean Classifier_ (NCM) was first used in CIL by Rebuffi et aL. (2017).
@@ -359,7 +362,15 @@ where $dist$ is for example the Euclidean distance or the cosine similarity.
 * Experiment with the NCM. Try different datasets, data splits, encoders. Compare the results.
 
 ```bash
-python ncm_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
+python ncm_expe.py --dataset mnist --nb_init_cl 2 --nb_incr_cl 2 --nb_tot_cl 10 --archi simpleCNN --pretrain none
+```
+
+```bash
+python ncm_expe.py --dataset flowers-102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi resnet18 --pretrain in1k
+```
+
+```bash
+python ncm_expe.py --dataset flowers-102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi vits --pretrain lvd142m
 ```
 
 When applied using an encoder trained on a large-scale dataset, NCM can be a challenging baseline for CIL algorithms.
@@ -387,7 +398,11 @@ At inference, the score $o_c$ associated with a class $c$ is computed as $o_c = 
 and $b_c$ is the component of a bias vector $b \in \mathbb{R}^{n_{1:t}}$ which corresponds to class $c$. The bias can be updated online and is computed by: $b_c = - \frac{1}{2} (\mu_c \cdot \Lambda \mu_c)$.
 
 ```bash
-python dslda_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
+python dslda_expe.py --dataset mnist --nb_init_cl 2 --nb_incr_cl 2 --nb_tot_cl 10 --archi simpleCNN --pretrain none
+```
+
+```bash
+python dslda_expe.py --dataset flowers-102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi resnet18 --pretrain in1k
 ```
 
 __FeCAM__
@@ -422,12 +437,30 @@ y_{pred} = argmin_{c \in [1, n_{1:t} ]} \; (\phi(x) - \mu_c)^\intercal(\mathbf{\
 * Compare the performance gap between the two versions of FeCAM across different data scenarios (i.e. number of training samples per class to compute the covariance matrix).
 
 ```bash
-python fecam1_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 
+python fecam1_expe.py --dataset mnist --nb_init_cl 2 --nb_incr_cl 2 --nb_tot_cl 10 --archi simpleCNN --pretrain none 
 ```
 
 ```bash
-python fecamN_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
+python fecam1_expe.py --dataset flowers-102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi resnet18 --pretrain in1k
 ```
+
+Note : FeCAM with a covariance matrix for each class needs sufficient training samples per class in order to compute the inverse of the covariance matrix. Transformations for better conditioning of the covariance matrix requires hyperparameter tuning. 
+When the number of training samples per class is not significantly greater than the dimension of the feature vectors, the version of FeCAM with multiple covariance matrices is likely to underperform the version of FeCAM with a single (shared) covariance matrix.
+
+```bash
+python fecamN_expe.py --dataset flowers-102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi resnet18 --pretrain in1k
+```
+
+Try on the food-101 dataset (750 training samples per class vs only 10 for flowers-102).
+
+```bash
+python fecam1_expe.py --dataset food-101 --nb_init_cl 51 --nb_incr_cl 10 --nb_tot_cl 102 --archi vits --pretrain lvd142m
+```
+
+```bash
+python fecamN_expe.py --dataset food-101 --nb_init_cl 51 --nb_incr_cl 10 --nb_tot_cl 102 --archi vits --pretrain lvd142m
+```
+
 __Further reading on classifier-incremental learning__:
 
 * latent replay (Ostapenko et al., 2022)
