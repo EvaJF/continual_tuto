@@ -3,7 +3,7 @@ import random
 import numpy as np
 
 
-def seed_all(seed):
+def seed_all(seed=42):
     torch.manual_seed(seed)  # torch
     random.seed(seed)  # python
     np.random.seed(0)  # numpy
