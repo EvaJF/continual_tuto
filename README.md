@@ -40,9 +40,9 @@ conda activate cil
 
 Pip version:
 ```bash
-python -m venv cil
-source cil/bin/activate 
-pip install -r requirements.txt
+python -m venv .cil
+source .cil/bin/activate 
+python -m pip install -r requirements.txt
 ```
 We will use standard libraries for numerical computations (`numpy`), visualization (`matplotlib`) and deep learning (`torch`).
 
@@ -338,7 +338,7 @@ tree -L 2 features
 We provide a script for extracting features with a choice of dataset, model architecture and pre-training dataset, e.g. the following command will compute image representations for the images of Food-101 using a ViT-Small network pre-trained on the LVD-142m dataset.
 
 ```
-python ftextract --dataset food-101 --archi vits --pretrain lvd142m
+python ftextract.py --dataset food-101 --archi vits --pretrain lvd142m
 ```
 
 __NCM__
