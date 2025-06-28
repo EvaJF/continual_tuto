@@ -11,7 +11,8 @@ from utils_tuto.parser import parse_args
 from methods.ncm import NCM_incr
 
 # Example usage
-# python ncm_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --proj_dim 10000
+# python ncm_expe.py --dataset mnist --nb_tot_cl 10 --nb_init_cl 2 --nb_incr_cl 2
+# python ncm_expe.py --dataset flowers102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102
 
 # params
 args = parse_args()
@@ -23,11 +24,11 @@ nb_tot_cl = args.nb_tot_cl
 n_steps = (nb_tot_cl - nb_init_cl) // nb_incr_cl
 print(n_steps, "steps")
 
-log_dir = os.path.join(args.log_dir, args.archi, f"proj_{args.proj_dim}")
+log_dir = os.path.join(args.log_dir, args.archi)
 prefix = args.prefix
 features_dir = args.features_dir  
-train_dir = os.path.join(features_dir, dataset, "train", f"proj_{args.proj_dim}")
-test_dir = os.path.join(features_dir, dataset, "test", f"proj_{args.proj_dim}")
+train_dir = os.path.join(features_dir, dataset, "train")
+test_dir = os.path.join(features_dir, dataset, "test")
 
 print(f"Loading features from {train_dir}")
 X_train, y_train = read_features_as_array(train_dir, nb_tot_cl)
