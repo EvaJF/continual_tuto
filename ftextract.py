@@ -6,6 +6,9 @@ from utils_tuto.encoder import get_encoder, encode_features
 from utils_tuto.dataset import get_dataset
 from utils_tuto.utils import get_device, seed_all
 
+# example usage
+# python ftextract.py --dataset flowers-102 --archi resnet18 --pretrain in1k
+
 def main():
     args = parse_args()
     seed_all()
