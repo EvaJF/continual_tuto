@@ -1,4 +1,3 @@
-import os
 import argparse
 import pprint
 
@@ -7,7 +6,11 @@ def parse_args():
     pp = pprint.PrettyPrinter()
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--dataset", type=str, help="dataset name")
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        help="dataset name, for instance 'mnist', 'flowers-102', 'food-101' ",
+    )
     parser.add_argument(
         "--nb_init_cl",
         type=int,
@@ -24,14 +27,18 @@ def parse_args():
         "--nb_tot_cl", type=int, default=1000, help="total number of (real) classes"
     )
     parser.add_argument(
-        "--archi", type=str, default="resnet18", 
-        choices = ['resnet18', 'vits'],
-        help="architecture of the encoder"
+        "--archi",
+        type=str,
+        default="resnet18",
+        choices=["resnet18", "vits", "simpleCNN"],
+        help="architecture of the encoder",
     )
     parser.add_argument(
-        "--pretrain", type=str, default='in1k',
-        choices = ['in1k', 'in21k', 'none'], 
-        help="pretraining dataset for the encoder"
+        "--pretrain",
+        type=str,
+        default="in1k",
+        choices=["in1k", "in21k", "none", "lvd142m"],
+        help="pretraining dataset for the encoder",
     )
     parser.add_argument(
         "--features_dir",
@@ -61,14 +68,10 @@ def parse_args():
         help="coeff2 for covariance shrinkage in fecam",
     )
     parser.add_argument(
-        "--proj_dim",
-        type=int,
-        default=0,
-        help="new feature size for random projection"
+        "--proj_dim", type=int, default=0, help="new feature size for random projection"
     )
-    
+
     args = parser.parse_args()
     pp.pprint(args)
-
 
     return args
