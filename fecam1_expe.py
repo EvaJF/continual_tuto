@@ -12,6 +12,7 @@ from utils_tuto.parser import parse_args
 
 # Example usage
 # python fecam1_expe.py --dataset flowers-102 --nb_init_cl 52 --nb_incr_cl 10 --nb_tot_cl 102 --archi vits --pretrain lvd142m
+# python fecam1_expe.py --dataset mnist --nb_init_cl 2 --nb_incr_cl 2 --nb_tot_cl 10 --archi simpleCNN --pretrain none
 
 ### Utility functions ###
 
@@ -72,32 +73,15 @@ def main():
     print("batch_size", batch_size)
     # feature path
     train_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "train")
+    val_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "valid")
     test_dir = os.path.join(features_dir, dataset, args.archi, args.pretrain, "test")
     print("train_dir", train_dir)
+    print("val_dir", val_dir)
     print("test_dir", test_dir)
-    # TODO fix scratch
-    scratch_train_dir = train_dir
-    scratch_test_dir = test_dir
-    print("scratch_train_dir", scratch_train_dir)
-    print("scratch_test_dir", scratch_test_dir)
-
-    # feature size
-    feature_extractor = args.archi
-    if feature_extractor == "resnet18":
-        hidden_size = 512
-    elif feature_extractor == "resnet50":
-        hidden_size = 2048
-    elif (
-        "vits" in feature_extractor or feature_extractor == "dinov2"
-    ):  # by default, dinov2 --> dinov2-vits-imagenet2012
-        hidden_size = 384
-    else:  # ViT base
-        hidden_size = 768
-    print("feature size :", hidden_size)
 
     ### Open features ###
     decompose_fn = partial(
-        untie_features, train_features_path=train_dir, val_features_path=test_dir
+        untie_features, train_features_path=train_dir, val_features_path=val_dir, test_features_path=test_dir
     )
 
     print("\nStarting decomposition...")
@@ -112,7 +96,8 @@ def main():
     print("\nBegining training with device", device)
     task_size_train = torch.zeros(n_tasks + 1)
     class_mean_set = []
-    accuracy_history_u = []
+    accuracy_history_val = [] # valid set
+    accuracy_history_test = [] # test set
 
     for task in range(n_tasks + 1):
         print(f"\nTask {task}")
@@ -124,13 +109,19 @@ def main():
         print(f"Train index : {start_id} - {stop_id}")
         print(f"Test  index : 0 - {stop_id}")
         train_dataset = FeaturesDataset(
-            scratch_train_dir, range_classes=range(start_id, stop_id)
+            train_dir, range_classes=range(start_id, stop_id)
+        )
+        val_dataset = FeaturesDataset(
+            val_dir, range_classes=range(0, stop_id)
         )
         test_dataset = FeaturesDataset(
-            scratch_test_dir, range_classes=range(0, stop_id)
+            test_dir, range_classes=range(0, stop_id)
         )
         train_loader = torch.utils.data.DataLoader(
             train_dataset, batch_size=batch_size, shuffle=False
+        )
+        val_loader = torch.utils.data.DataLoader(
+            val_dataset, batch_size=batch_size, shuffle=False
         )
         test_loader = torch.utils.data.DataLoader(
             test_dataset, batch_size=batch_size, shuffle=False
@@ -147,13 +138,13 @@ def main():
             y.append(label)
         X = torch.cat(
             X
-        )  # NB : bizarre de normaliser par batch sachant qu'on a X en mémoire, mais peut-être que c'est plus réaliste par rapport à l'inférence ?
+        )  
         y = torch.cat(y)
         task_size_train[task] += len(X)
         print(f"Train size of task {task} is {len(X)}")
 
         # Compute the class prototypes of the current classes
-        for i in range(start_id, stop_id):  # bottleneck 1
+        for i in range(start_id, stop_id):
             # select the features of the current class
             image_class_mask = y == i
             # compute the class prototype
@@ -161,21 +152,17 @@ def main():
 
         # Compute the current covariance matrix
         curr_cov = torch.cov(X.T)  # np.cov
-        # print(f"Frobenius of current cov mat {task}    : {Frobenius(curr_cov)}")
 
         # Update the common covariance matrix
         if task == 0:  # initial task, only 1 cov mat
             common_cov = curr_cov.detach().clone()
-            if ("vits" in feature_extractor) or (feature_extractor == "dinov2"):
+            if ("vits" in args.archi) or (args.archi == "dinov2"): # TODO tune hyperparameters
                 alpha1, alpha2 = 0.0, 0.0
             else:
                 alpha1, alpha2 = 10.0, 10.0
         else:  # weighted average with the previous matrix
             ratio = torch.sum(task_size_train[:task]) / torch.sum(task_size_train)
-            # print('Update ratio', ratio)
             common_cov = ratio * common_cov + (1 - ratio) * curr_cov  # equation (6)
-            # print(f"Frobenius of COMMON cov mat {task} : {Frobenius(common_cov)}")
-            # print(f"Frobenius of DELTA cov mat {task}  : {Frobenius(common_cov - curr_cov)}")
             alpha1, alpha2 = 0.0, 0.0  # by default, no shrinkage for incremental tasks
 
         # shrink before inversion
@@ -185,31 +172,26 @@ def main():
             shrunk_common_cov = common_cov
         else:
             shrunk_common_cov = shrink_cov(common_cov, alpha1=alpha1, alpha2=alpha2)
-        # print(f"Frobenius of SHRUNK cov mat {task}     : {Frobenius(shrunk_common_cov)}")
-        # print(f"Frobenius of DELTA SHRUNK cov mat {task} : {Frobenius(common_cov - shrunk_common_cov)}")
         # Invert the common cov mat with Moore-Penrose algorithm
         pinv_common_cov = torch.linalg.pinv(shrunk_common_cov)
 
-        print("\nInference")
+        print("\nEvaluation on validation set")
         correct_u, total_u = 0, 0
-
         for img_batch, label in tqdm(
-            test_loader, desc=f"Testing {task}", total=len(test_loader)
+            val_loader, desc=f"Testing {task}", total=len(val_loader)
         ):  # test_loader :
             img_batch.to(device)
             label.to(device)
             out = F.normalize(img_batch.clone().detach())  # .numpy()
 
-            predictions_u = []  # v2 : unique covariance matrix
+            predictions_u = [] 
             maha_dist_u = []
-
             for cl in range(
                 stop_id
-            ):  # bottleneck 2 TODO optimize : compute everything only once ?
+            ): 
                 distance_cl = out - class_mean_set[cl]
-                # UNIQUE cov
                 dist_u = mahalanobis(distance_cl, pinv_common_cov)
-                maha_dist_u.append(dist_u.numpy())  ### back to numpy from here
+                maha_dist_u.append(dist_u.numpy())  # back to numpy from here
 
             maha_dist_u = np.array(maha_dist_u)
             pred_u = np.argmin(maha_dist_u.T, axis=1)
@@ -219,26 +201,54 @@ def main():
             correct_u += (predictions_u.cpu() == label.cpu()).sum()
             total_u += label.shape[0]
 
-        print(f"Accuracy at {task} with UNIQUE cov matrix {correct_u/total_u}")
-        accuracy_history_u.append(float(correct_u / total_u))
+        print(f"VAL ACC at {task} with UNIQUE cov matrix {correct_u/total_u}")
+        accuracy_history_val.append(float(correct_u / total_u))
 
-    print(f"\nCOMMON COV Average Incremental Accuracy: {np.mean(accuracy_history_u)}")
+        print("\nEvaluation on test set")
+        correct_u, total_u = 0, 0
+        for img_batch, label in tqdm(
+            test_loader, desc=f"Testing {task}", total=len(test_loader)
+        ): 
+            img_batch.to(device)
+            label.to(device)
+            out = F.normalize(img_batch.clone().detach())  # .numpy()
+            predictions_u = []
+            maha_dist_u = []
+            for cl in range(
+                stop_id
+            ):
+                distance_cl = out - class_mean_set[cl]
+                dist_u = mahalanobis(distance_cl, pinv_common_cov)
+                maha_dist_u.append(dist_u.numpy())  # back to numpy from here
+            maha_dist_u = np.array(maha_dist_u)
+            pred_u = np.argmin(maha_dist_u.T, axis=1)
+            predictions_u.append(pred_u)
+
+            predictions_u = torch.tensor(np.array(predictions_u))
+            correct_u += (predictions_u.cpu() == label.cpu()).sum()
+            total_u += label.shape[0]
+
+        print(f"TEST ACC at {task} with UNIQUE cov matrix {correct_u/total_u}")
+        accuracy_history_test.append(float(correct_u / total_u))
+
+    print(f"\nFeCAM Common Cov Average Incremental Accuracy VAL: {np.mean(accuracy_history_val)}")
+    print(f"\nFeCAM Common Cov Average Incremental Accuracy TEST: {np.mean(accuracy_history_test)}")
 
     ### print report ###
     log_path = os.path.join(
-        log_dir, feature_extractor, dataset, "seed-1", f"b{nb_init_cl}", f"t{n_tasks}"
+        log_dir, args.archi, dataset, "seed-1", f"b{nb_init_cl}", f"t{n_tasks}"
     )
     print("Writing log to", log_path)
     os.makedirs(log_path, exist_ok=True)
 
     # compute avg incr acc
     print("\nRecap Acc COMMON COV")
-    print("Avg acc list ", [round(k, 3) for k in accuracy_history_u])
-    avg_incr_acc_u = round(np.mean(accuracy_history_u), 3)
+    print("Avg acc list ", [round(k, 3) for k in accuracy_history_test])
+    avg_incr_acc_u = round(np.mean(accuracy_history_test), 3)
     print("Avg incr acc", avg_incr_acc_u)
     log = f"""=========== {dataset} seed-1 b{nb_init_cl} t{n_tasks} ==============
-top1:{accuracy_history_u}
-top1 = {avg_incr_acc_u} | top1 without first batch = {round(np.mean(accuracy_history_u[1:]),3)}
+top1:{accuracy_history_test}
+top1 = {avg_incr_acc_u} | top1 without first batch = {round(np.mean(accuracy_history_test[1:]),3)}
 ================================================================
 """
     print(log)
@@ -247,7 +257,7 @@ top1 = {avg_incr_acc_u} | top1 without first batch = {round(np.mean(accuracy_his
     print("Wrote log")
 
     clean_fn = partial(
-        clean_features, train_features_path=train_dir, val_features_path=test_dir
+        clean_features, train_features_path=train_dir, val_features_path=val_dir, test_features_path=test_dir
     )
     with Pool(8) as p:
         p.map(clean_fn, range(nb_tot_cl))
