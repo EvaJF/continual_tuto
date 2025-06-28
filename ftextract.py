@@ -1,12 +1,9 @@
-import os
-import numpy as np
 import torch
 import torch.nn as nn
-from torchvision import datasets
 import sys
-from sklearn.model_selection import train_test_split
 from utils_tuto.parser import parse_args
 from utils_tuto.encoder import get_encoder, encode_features
+from utils_tuto.dataset import get_dataset
 from utils_tuto.utils import get_device, seed_all
 
 def main():
@@ -29,62 +26,7 @@ def main():
     # dataset
     dataset = args.dataset
     print('\nPreparing dataset...')
-
-    if dataset == "food101" : 
-        dataset_train = datasets.Food101(
-            root="data",
-            split = 'train',
-            download=True,
-            transform=data_transforms
-        )
-
-        dataset_val = datasets.Food101(
-            root="data",
-            split='train',
-            download=False,
-            transform=data_transforms
-        )
-
-        dataset_test = datasets.Food101(
-            root="data",
-            split='test',
-            download=True,
-            transform=data_transforms
-        )    
-        #print(dataset_train.__dir__())
-
-        valid = False
-        # custom validation dataset
-        if valid : 
-            samples_train, samples_val = train_test_split(dataset_train._image_files, test_size=0.2)
-            dataset_train._image_files = samples_train
-            dataset_val._image_files = samples_val     
-
-    elif dataset == "flowers102": 
-        dataset_train = datasets.Flowers102(
-            root="data",
-            split='train',
-            download=True,
-            transform=data_transforms
-        )
-
-        dataset_val = datasets.Flowers102(
-            root="data",
-            split='val',
-            download=True,
-            transform=data_transforms
-        )
-
-        dataset_test = datasets.Flowers102(
-            root="data",
-            split='test',
-            download=True,
-            transform=data_transforms
-        )   
-        valid = True 
-    else : 
-        raise NotImplementedError("This dataset name doesn't seem to be supported. Implement a custom Dataset.")
-        
+    dataset_train, dataset_val, dataset_test = get_dataset(dataset, data_transforms)
 
     # datasets and loaders from train / val / test image lists
     print("Nb of train images : %i" % len(dataset_train))
@@ -113,11 +55,11 @@ def main():
         my_net, loader_test, save_dir=f"data/features/{dataset}/test", device=device
     )
     print("Completed feature extraction for Test images\n")
-    if valid : 
-            encode_features(
-                my_net, loader_val, save_dir=f"data/features/{dataset}/valid", device=device
-            )
-            print("Completed feature extraction for Valid images\n")
+    #if valid : 
+    encode_features(
+        my_net, loader_val, save_dir=f"data/features/{dataset}/valid", device=device
+    )
+    print("Completed feature extraction for Valid images\n")
 
             
 
