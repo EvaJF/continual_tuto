@@ -1,4 +1,4 @@
-name: cil2
+name: cil
 channels:
 - defaults
 - https://repo.anaconda.com/pkgs/main
@@ -102,4 +102,3 @@ dependencies:
   - safetensors==0.5.3
   - timm==1.0.15
   - urllib3==2.4.0
-prefix: /Users/eva/miniconda3/envs/cil
