@@ -27,22 +27,30 @@ To get started with the tutorial, clone this repository and
 create a virtual environment with either [pip](https://python-guide-pt-br.readthedocs.io/fr/latest/dev/virtualenvs.html) or [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html).
 The name of the environment is "cil". 
 
-__Recommended : Python 3.10 or above__
-
 ```bash
 git clone git@github.com:EvaJF/continual_tuto.git
 cd continual_tuto
 ```
 
-Pip version: Ajouter pip upgrade dedans
+__Recommended : Python 3.10 or above, upgrade pip__
+
+Minimal version: 
 ```bash
 python -m venv ./cil
-python ./cil/python upgrade pip
 source ./cil/bin/activate 
+python -m pip install --upgrade pip
+python -m pip install torch torchvision pandas tqdm scikit-learn argparse timm
+```
+
+Pip version (Requirements for Python 3.12):
+```bash
+python -m venv ./cil
+source ./cil/bin/activate 
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-Conda version:
+Conda version (Requirements for Python 3.12):
 ```bash
 conda env create -f cil.yml
 conda activate cil
