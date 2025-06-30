@@ -1,10 +1,6 @@
-import os
 import numpy as np
-
 from sklearn.metrics.pairwise import euclidean_distances, cosine_distances
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
+
 
 
 class NCM_incr:
