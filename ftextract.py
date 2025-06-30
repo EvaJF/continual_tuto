@@ -14,7 +14,7 @@ def main():
     seed_all()
     
     # if available, use GPU / MPS, else CPU
-    print(f"Torch default device: {torch.get_default_device()}")
+    # print(f"Torch default device: {torch.get_default_device()}")
     device = get_device()
     print(f"Selected device {device}")
 
