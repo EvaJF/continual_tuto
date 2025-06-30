@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
 from utils_tuto.dataset import read_features_as_array
 from utils_tuto.parser import parse_args
 from methods.ncm import NCM_incr
