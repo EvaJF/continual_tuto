@@ -24,12 +24,22 @@ ___
 __Set-up__
 
 To get started with the tutorial, clone this repository and 
-create a virtual environment with either [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) or [pip](https://python-guide-pt-br.readthedocs.io/fr/latest/dev/virtualenvs.html).
+create a virtual environment with either [pip](https://python-guide-pt-br.readthedocs.io/fr/latest/dev/virtualenvs.html) or [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html).
 The name of the environment is "cil". 
+
+__Recommended : Python 3.10 or above__
 
 ```bash
 git clone git@github.com:EvaJF/continual_tuto.git
 cd continual_tuto
+```
+
+Pip version: Ajouter pip upgrade dedans
+```bash
+python -m venv ./cil
+python ./cil/python upgrade pip
+source ./cil/bin/activate 
+python -m pip install -r requirements.txt
 ```
 
 Conda version:
@@ -38,12 +48,6 @@ conda env create -f cil.yml
 conda activate cil
 ```
 
-Pip version:
-```bash
-python -m venv .cil
-source .cil/bin/activate 
-python -m pip install -r requirements.txt
-```
 We will use standard libraries for numerical computations (`numpy`), visualization (`matplotlib`) and deep learning (`torch`).
 
 __Repository structure__
@@ -508,7 +512,7 @@ conda env remove --name cil
 
 ```bash
 deactivate
-rm -r cil/
+rm -r .cil/
 ```
 ____
 
