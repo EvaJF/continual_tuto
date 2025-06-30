@@ -114,17 +114,3 @@ os.makedirs(log_path, exist_ok=True)
 with open(os.path.join(log_path, "ncm.txt"), "w") as f:
     f.write(log)
 print("Wrote log")
-
-# plot
-fig, ax = plt.subplots()
-ax.plot(avg_acc_list, label="avg acc")
-ax.plot(curr_acc_list, label="curr acc")
-ax.plot(init_acc_list, label="init acc")
-plt.legend()
-plt.title(f"NCM {prefix} - b{nb_init_cl} t{n_steps}")
-plt.show()
-save_path = os.path.join(log_dir, f"ncm_{prefix}_b{nb_init_cl}_t{n_steps}.png")
-plt.savefig(save_path)
-print("Saved fig at", save_path)
-
-print("\n\nSuccess")
