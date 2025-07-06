@@ -520,7 +520,7 @@ conda env remove --name cil
 
 ```bash
 deactivate
-rm -r .cil/
+rm -r ./cil/
 ```
 ____
 
@@ -637,8 +637,7 @@ of Proceedings of Machine Learning Research, pages 60–91. PMLR.
 
 Petit, G., Soumm, M., Feillet, E., et al. (2024) "An analysis of initial training strategies for exemplar-free class-incremental learning." Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision.
 
-Petit, G., Popescu, A., Schindler, H., Picard, D., and Delezoide, B. (2023). Fetril: Feature translation
-for exemplar-free class-incremental learning. In Proceedings of 
+Petit, G., Popescu, A., Schindler, H., Picard, D., and Delezoide, B. (2023). Fetril: Feature translation for exemplar-free class-incremental learning. In Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision.
 
 Prabhu, A., Torr, P. H., and Dokania, P. K. (2020). Gdumb: A simple approach that questions our progress
 in continual learning. In European Conference on Computer Vision, pages 524–540. Springer.
